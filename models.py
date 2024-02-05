@@ -39,3 +39,17 @@ class TrecaTabela(Base):
 
     def __init__(self, sadrzajParam):
         self.sadrzaj = sadrzajParam
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(INTEGER(11), primary_key=True)
+    email = Column(String(100), nullable=False, unique=True)
+    password = Column(String(100), nullable=False)
+    username = Column(String(45), nullable=False, unique=True)
+
+    def __init__(self, emailParam, passwordParam, usernameParam):
+        self.email = emailParam
+        self.password = passwordParam
+        self.username = usernameParam

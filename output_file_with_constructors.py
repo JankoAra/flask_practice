@@ -13,8 +13,11 @@ class DrugaTabela(Base):
     id = Column(INTEGER(11), primary_key=True)
     email = Column(String(45))
 
-    def __init__(self, id, email):
-        self.id = id, self.email = email
+    def __init__(self, emailParam):
+        self.email = emailParam
+
+    def __init__(self, emailParam):
+        self.email = emailParam
 
 
 class PrvaTabela(Base):
@@ -23,6 +26,43 @@ class PrvaTabela(Base):
     id = Column(INTEGER(11), primary_key=True)
     ime = Column(String(255))
     broj = Column(INTEGER(11))
+    opis = Column(String(45))
 
-    def __init__(self, id, ime, broj):
-        self.id = id, self.ime = ime, self.broj = broj
+    def __init__(self, imeParam, brojParam, opisParam):
+        self.ime = imeParam
+        self.broj = brojParam
+        self.opis = opisParam
+
+    def __init__(self, imeParam, brojParam, opisParam):
+        self.ime = imeParam
+        self.broj = brojParam
+        self.opis = opisParam
+
+
+class TrecaTabela(Base):
+    __tablename__ = 'trecaTabela'
+
+    id = Column(INTEGER(11), primary_key=True)
+    sadrzaj = Column(String(45))
+
+    def __init__(self, sadrzajParam):
+        self.sadrzaj = sadrzajParam
+
+    def __init__(self, sadrzajParam):
+        self.sadrzaj = sadrzajParam
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(INTEGER(11), primary_key=True)
+    email = Column(String(100), nullable=False)
+    password = Column(String(100), nullable=False)
+
+    def __init__(self, emailParam, passwordParam):
+        self.email = emailParam
+        self.password = passwordParam
+
+    def __init__(self, emailParam, passwordParam):
+        self.email = emailParam
+        self.password = passwordParam

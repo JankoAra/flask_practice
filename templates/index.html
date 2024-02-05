@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Poke-er</title>
+</head>
+<body>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+{% if session.username %}
+<h1>Logged in as {{ session.username }}</h1>
+{% endif %}
+<ul>
+    <li><a href="/form/register">Register</a></li>
+    {% if session.username %}
+    <li><a href="/logout">Log out</a></li>
+    {% else %}
+    <li><a href="/form/login">Log in</a></li>
+    {% endif %}
+</ul>
+
+</body>
+</html>
