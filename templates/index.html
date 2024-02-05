@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Poke-er</title>
+    <style>
+        #userList {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 {% with messages = get_flashed_messages() %}
@@ -15,16 +20,57 @@
     {% endif %}
 {% endwith %}
 {% if session.username %}
-<h1>Logged in as {{ session.username }}</h1>
+    <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
 <ul>
     <li><a href="/form/register">Register</a></li>
     {% if session.username %}
-    <li><a href="/logout">Log out</a></li>
+        <li><a href="/logout">Log out</a></li>
     {% else %}
-    <li><a href="/form/login">Log in</a></li>
+        <li><a href="/form/login">Log in</a></li>
     {% endif %}
+    <li><a href="#" id="showUsersLink" onclick="showUsers()">Show Users</a></li>
 </ul>
+
+<div id="userList">
+    <!-- Content to display all users -->
+    <ul id="usersListContent"></ul>
+</div>
+
+<script>
+    function showUsers() {
+        var userList = document.getElementById('userList');
+
+        // If the user list is not visible, make an AJAX request to fetch the user data
+        if (userList.style.display === 'none' || userList.style.display === '') {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var usersListContent = document.getElementById('usersListContent');
+                    usersListContent.innerHTML = '<p>All users</p>';  // Clear existing content
+
+                    // Parse JSON response
+                    var userData = JSON.parse(xhr.responseText);
+
+                    // Display each username one per line
+                    userData.forEach(function (user) {
+                        var li = document.createElement('li');
+                        li.textContent = user.username;
+                        usersListContent.appendChild(li);
+                    });
+
+                    // Show the user list
+                    userList.style.display = 'block';
+                }
+            };
+            xhr.open("GET", "/get_users", true);
+            xhr.send();
+        } else {
+            // If the user list is already visible, hide it
+            userList.style.display = 'none';
+        }
+    }
+</script>
 
 </body>
 </html>

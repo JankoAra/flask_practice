@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, session, flash
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 import mysql.connector
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -58,6 +58,14 @@ def login():
         else:
             flash("User doesn't exist")
     return redirect('/')
+
+
+@app.route('/get_users')
+def get_users():
+    dbSession = Session()
+    users = dbSession.query(User).all()
+    user_data = [{'username': user.username} for user in users]
+    return jsonify(user_data)
 
 
 @app.route("/email", methods=["POST", "GET"])
