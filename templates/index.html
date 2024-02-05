@@ -36,7 +36,12 @@
     <!-- Content to display all users -->
     <ul id="usersListContent"></ul>
 </div>
-
+{% if session.username %}
+    <ul>
+        <li><a href="/newpoke">Poke someone</a></li>
+        <li><a href="/mypokes">View pokes</a></li>
+    </ul>
+{% endif %}
 <script>
     function showUsers() {
         var userList = document.getElementById('userList');

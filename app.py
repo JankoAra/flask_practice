@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 import mysql.connector
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, DateTime, update
 from sqlalchemy.orm import sessionmaker
 
-from models import PrvaTabela, DrugaTabela, User
+from models import PrvaTabela, DrugaTabela, User, Poke
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/prvaBaza"
@@ -66,6 +68,37 @@ def get_users():
     users = dbSession.query(User).all()
     user_data = [{'username': user.username} for user in users]
     return jsonify(user_data)
+
+
+@app.route('/newpoke')
+def new_poke():
+    dbSession = Session()
+    users = dbSession.query(User).filter(User.username != session['username']).all()
+    return render_template("newpoke.html", users=users)
+
+
+@app.route('/makepoke/<usernamePoked>')
+def create_poke(usernamePoked):
+    returnPoke = bool(request.args.get('returnpoke'))
+    pokeID = int(request.args.get('poke')) if request.args.get('poke') is not None else None
+    dbSession = Session()
+    if returnPoke and pokeID:
+        stmt = update(Poke).where(Poke.id==pokeID).values(status='N')
+        dbSession.execute(stmt)
+    userPoked = dbSession.query(User).filter(User.username == usernamePoked).first()
+    userPoking = dbSession.query(User).filter(User.username == session['username']).first()
+    poke = Poke(userPoking.id, userPoked.id, 'A')
+    dbSession.add(poke)
+    dbSession.commit()
+    return redirect("/")
+
+
+@app.route('/mypokes')
+def my_pokes():
+    dbSession = Session()
+    user = dbSession.query(User).filter(User.username == session['username']).first()
+    pokes = dbSession.query(Poke).filter(Poke.userPoked == user.id, Poke.status=='A').all()
+    return render_template("mypokes.html", pokes=pokes)
 
 
 @app.route("/email", methods=["POST", "GET"])

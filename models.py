@@ -1,6 +1,7 @@
 # coding: utf-8
-from sqlalchemy import Column, String
+from sqlalchemy import CHAR, Column, DateTime, ForeignKey, String, text
 from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -31,16 +32,6 @@ class PrvaTabela(Base):
         self.opis = opisParam
 
 
-class TrecaTabela(Base):
-    __tablename__ = 'trecaTabela'
-
-    id = Column(INTEGER(11), primary_key=True)
-    sadrzaj = Column(String(45))
-
-    def __init__(self, sadrzajParam):
-        self.sadrzaj = sadrzajParam
-
-
 class User(Base):
     __tablename__ = 'users'
 
@@ -53,3 +44,21 @@ class User(Base):
         self.email = emailParam
         self.password = passwordParam
         self.username = usernameParam
+
+
+class Poke(Base):
+    __tablename__ = 'pokes'
+
+    id = Column(INTEGER(11), primary_key=True)
+    userPoking = Column(ForeignKey('users.id', onupdate='CASCADE'), nullable=False, index=True)
+    userPoked = Column(ForeignKey('users.id', onupdate='CASCADE'), nullable=False, index=True)
+    status = Column(CHAR(1), nullable=False)
+    time = Column(DateTime, nullable=False, server_default=text("current_timestamp()"))
+
+    user = relationship('User', primaryjoin='Poke.userPoked == User.id')
+    user1 = relationship('User', primaryjoin='Poke.userPoking == User.id')
+
+    def __init__(self, userPokingParam, userPokedParam, statusParam):
+        self.userPoking = userPokingParam
+        self.userPoked = userPokedParam
+        self.status = statusParam
