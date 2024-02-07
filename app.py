@@ -5,12 +5,17 @@ import mysql.connector
 from sqlalchemy import create_engine, update
 from sqlalchemy.orm import sessionmaker
 
+from flask_bcrypt import Bcrypt
+
 from models import PrvaTabela, DrugaTabela, User, Poke
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/prvaBaza"
-app.config['HOST_ADDRESS'] = '192.168.1.3'
-app.config['PORT'] = '80'
+# app.config['HOST_ADDRESS'] = '192.168.1.3'
+# app.config['PORT'] = '80'
 
 # Define the SQLAlchemy engine and session
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -41,7 +46,8 @@ def register():
         if user is not None:
             flash("Username is taken")
             return redirect(url_for('index'))
-        user = User(emailParam=email, passwordParam=password, usernameParam=username)
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        user = User(emailParam=email, passwordParam=hashed_password, usernameParam=username)
         dbSession.add(user)
         dbSession.commit()
         flash("User created")
@@ -55,11 +61,14 @@ def login():
     password = request.form['password']
     dbSession = Session()
     if email and password:
-        user = dbSession.query(User).filter_by(email=email, password=password).first()
+        user = dbSession.query(User).filter_by(email=email).first()
         if user is not None:
-            session['username'] = user.username
+            if bcrypt.check_password_hash(user.password, password):
+                session['username'] = user.username
+            else:
+                flash("Username or password are wrong")
         else:
-            flash("User doesn't exist")
+            flash("Username or password are wrong")
     return redirect(url_for('index'))
 
 
@@ -105,6 +114,7 @@ def my_pokes():
     pokes = dbSession.query(Poke).filter(Poke.userPoked == user.id, Poke.status == 'A').all()
     return render_template("mypokes.html", pokes=pokes)
 
+
 @app.route('/ignorepoke/<int:pokeID>')
 def ignore_poke(pokeID):
     dbSession = Session()
@@ -115,6 +125,7 @@ def ignore_poke(pokeID):
         dbSession.commit()
     dbSession.close()
     return redirect(url_for('my_pokes'))
+
 
 @app.route("/email", methods=["POST", "GET"])
 def email_creation():
