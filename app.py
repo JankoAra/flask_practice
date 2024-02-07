@@ -23,6 +23,7 @@ app.config['UPLOAD_FOLDER'] = './uploads/'
 # Maximum allowed file size for upload (in bytes)
 app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB
 
+
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = 'sender@mail'
