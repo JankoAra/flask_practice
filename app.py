@@ -4,22 +4,44 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 import mysql.connector
 from sqlalchemy import create_engine, update
 from sqlalchemy.orm import sessionmaker
+import os
 
 from flask_bcrypt import Bcrypt
+from werkzeug.utils import secure_filename
 
 from models import PrvaTabela, DrugaTabela, User, Poke
+
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
-
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/prvaBaza"
 # app.config['HOST_ADDRESS'] = '192.168.1.3'
 # app.config['PORT'] = '80'
+app.config['UPLOAD_FOLDER'] = './uploads/'
+# Maximum allowed file size for upload (in bytes)
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'sender@mail'
+app.config['MAIL_PASSWORD'] = 'password'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 
 # Define the SQLAlchemy engine and session
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 Session = sessionmaker(bind=engine)
+
+
+@app.route("/mail")
+def send_mail():
+    msg = Message('Hello', sender=app.config['MAIL_USERNAME'], recipients=['receiver@mail'])
+    msg.body = "Hello Flask message sent from Flask-Mail"
+    mail.send(msg)
+    return "Sent"
 
 
 @app.route('/form/<action>')
@@ -28,6 +50,8 @@ def form(action):
         return render_template("register_form.html")
     elif action == "login":
         return render_template("login_form.html")
+    elif action == "uploadfile":
+        return render_template("upload_file.html")
     return "greska"
 
 
@@ -125,6 +149,26 @@ def ignore_poke(pokeID):
         dbSession.commit()
     dbSession.close()
     return redirect(url_for('my_pokes'))
+
+
+def get_timestamp():
+    return datetime.now().strftime("%Y%m%d%H%M%S")
+
+
+@app.route('/upload-file', methods=["POST"])
+def upload_file():
+    if request.content_length > app.config['MAX_CONTENT_LENGTH']:
+        flash('File size exceeds the allowed limit')
+        return redirect(url_for('index'))
+    f = request.files['file']
+    if f:
+        timestamp = get_timestamp()
+        filename = f"{timestamp}_{secure_filename(f.filename)}"
+        path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+        os.makedirs('uploads', exist_ok=True)
+        f.save(path)
+        flash("file uploaded")
+    return redirect(url_for('index'))
 
 
 @app.route("/email", methods=["POST", "GET"])
