@@ -5,8 +5,8 @@
     <title>Register</title>
 </head>
 <body>
-<a href="/">Back to index</a>
-<form method="post" action="http://{{ host }}:5000/register">
+<a href={{ url_for('index') }}>Back to index</a>
+<form method="post" action={{ url_for('register') }}>
     <p>Enter username:</p>
     <p><input type="text" name="username"></p>
     <p>Enter email:</p>

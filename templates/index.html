@@ -23,11 +23,11 @@
     <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
 <ul>
-    <li><a href="/form/register">Register</a></li>
+    <li><a href={{ url_for('form', action='register') }}>Register</a></li>
     {% if session.username %}
-        <li><a href="/logout">Log out</a></li>
+        <li><a href={{ url_for('logout') }}>Log out</a></li>
     {% else %}
-        <li><a href="/form/login">Log in</a></li>
+        <li><a href={{ url_for('form', action='login') }}>Log in</a></li>
     {% endif %}
     <li><a href="#" id="showUsersLink" onclick="showUsers()">Show Users</a></li>
 </ul>
@@ -38,8 +38,8 @@
 </div>
 {% if session.username %}
     <ul>
-        <li><a href="/newpoke">Poke someone</a></li>
-        <li><a href="/mypokes">View pokes</a></li>
+        <li><a href={{ url_for('new_poke') }}>Poke someone</a></li>
+        <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
     </ul>
 {% endif %}
 <script>

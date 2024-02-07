@@ -6,6 +6,6 @@
 </head>
 <body>
 <h1>You are logged in as {{ session.username }}</h1><br>
-<a href="/logout">Click to logout</a>
+<a href={{ url_for('logout') }}>Click to logout</a>
 </body>
 </html>

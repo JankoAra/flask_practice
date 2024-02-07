@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <title>My pokes</title>
 </head>
-<body>s
-<a href="/">Back to index</a>
+<body>
+<a href={{ url_for('index') }}>Back to index</a>
 {% for poke in pokes %}
     <p>Poked by: {{ poke.user1.username }} on {{ poke.time }}
-        <a href="/makepoke/{{ poke.user1.username }}?returnpoke=True&poke={{ poke.id }}">Poke back</a></p><br>
+        <a href={{ url_for('create_poke', usernamePoked=poke.user1.username, returnpoke=True, poke=poke.id) }}>Poke
+            back</a>
+        <a href={{ url_for('ignore_poke', pokeID=poke.id) }}>Ignore poke</a></p><br>
 {% endfor %}
 </body>
 </html>

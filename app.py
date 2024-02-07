@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 import mysql.connector
-from sqlalchemy import create_engine, select, DateTime, update
+from sqlalchemy import create_engine, update
 from sqlalchemy.orm import sessionmaker
 
 from models import PrvaTabela, DrugaTabela, User, Poke
@@ -10,6 +10,7 @@ from models import PrvaTabela, DrugaTabela, User, Poke
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/prvaBaza"
 app.config['HOST_ADDRESS'] = '192.168.1.3'
+app.config['PORT'] = '80'
 
 # Define the SQLAlchemy engine and session
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -19,9 +20,9 @@ Session = sessionmaker(bind=engine)
 @app.route('/form/<action>')
 def form(action):
     if action == "register":
-        return render_template("register_form.html", host=app.config['HOST_ADDRESS'])
+        return render_template("register_form.html")
     elif action == "login":
-        return render_template("login_form.html", host=app.config['HOST_ADDRESS'])
+        return render_template("login_form.html")
     return "greska"
 
 
@@ -35,17 +36,17 @@ def register():
         user = dbSession.query(User).filter_by(email=email).first()
         if user is not None:
             flash("Email is taken")
-            return redirect('/')
+            return redirect(url_for('index'))
         user = dbSession.query(User).filter_by(username=username).first()
         if user is not None:
             flash("Username is taken")
-            return redirect('/')
+            return redirect(url_for('index'))
         user = User(emailParam=email, passwordParam=password, usernameParam=username)
         dbSession.add(user)
         dbSession.commit()
         flash("User created")
         session['username'] = username
-    return redirect('/')
+    return redirect(url_for('index'))
 
 
 @app.route('/login', methods=["POST"])
@@ -59,7 +60,7 @@ def login():
             session['username'] = user.username
         else:
             flash("User doesn't exist")
-    return redirect('/')
+    return redirect(url_for('index'))
 
 
 @app.route('/get_users')
@@ -80,26 +81,40 @@ def new_poke():
 @app.route('/makepoke/<usernamePoked>')
 def create_poke(usernamePoked):
     returnPoke = bool(request.args.get('returnpoke'))
-    pokeID = int(request.args.get('poke')) if request.args.get('poke') is not None else None
+    pokeID = request.args.get('poke')
+    print(returnPoke, pokeID)
+    pokeID = int(pokeID) if pokeID is not None else None
     dbSession = Session()
     if returnPoke and pokeID:
-        stmt = update(Poke).where(Poke.id==pokeID).values(status='N')
+        stmt = update(Poke).where(Poke.id == pokeID).values(status='N')
         dbSession.execute(stmt)
     userPoked = dbSession.query(User).filter(User.username == usernamePoked).first()
     userPoking = dbSession.query(User).filter(User.username == session['username']).first()
     poke = Poke(userPoking.id, userPoked.id, 'A')
     dbSession.add(poke)
     dbSession.commit()
-    return redirect("/")
+    if returnPoke:
+        return redirect(url_for('my_pokes'))
+    return redirect(url_for('index'))
 
 
 @app.route('/mypokes')
 def my_pokes():
     dbSession = Session()
     user = dbSession.query(User).filter(User.username == session['username']).first()
-    pokes = dbSession.query(Poke).filter(Poke.userPoked == user.id, Poke.status=='A').all()
+    pokes = dbSession.query(Poke).filter(Poke.userPoked == user.id, Poke.status == 'A').all()
     return render_template("mypokes.html", pokes=pokes)
 
+@app.route('/ignorepoke/<int:pokeID>')
+def ignore_poke(pokeID):
+    dbSession = Session()
+    print(pokeID)
+    if pokeID:
+        stmt = update(Poke).where(Poke.id == pokeID).values(status='N')
+        dbSession.execute(stmt)
+        dbSession.commit()
+    dbSession.close()
+    return redirect(url_for('my_pokes'))
 
 @app.route("/email", methods=["POST", "GET"])
 def email_creation():
@@ -110,7 +125,6 @@ def email_creation():
         # dohvatanje form parametara u vidu key-value
         # request.form['key']
         email = request.form['email']
-    created = False
     if email:
         session["username"] = email
         allEmails = sessionDatabase.query(DrugaTabela.email).all()
@@ -120,7 +134,6 @@ def email_creation():
             novi = DrugaTabela(email)
             sessionDatabase.add(novi)
             sessionDatabase.commit()
-            created = True
         else:
             return "Korisnik vec postoji"
     sessionDatabase.close()
