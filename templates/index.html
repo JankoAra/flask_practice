@@ -42,6 +42,45 @@
         <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
         <li><a href={{ url_for('form', action='uploadfile') }}>Upload a file</a></li>
     </ul>
+    <form action="/newpost" method="post">
+        <label for="postContent">Write a post</label>
+        <textarea name="postContent" id="postContent" cols="50" rows="5"></textarea>
+        <input type="submit" value="Submit">
+    </form>
+    <hr>
+
+    <h2>Posts from users</h2>
+    <div id="userPosts">
+        <script>
+            function showAllPosts() {
+                fetch('http://localhost:5000/api/getAllPosts')
+                    .then(res => res.json())
+                    .then(res => {
+                        console.log(res);
+                        for (const resKey in res) {
+                            var post = res[resKey];
+                            //console.log(post);
+                            var newPostDiv = document.createElement("div");
+                            var pUsername = document.createElement("p");
+                            pUsername.textContent = post['authorUsername'];
+                            var pDate = document.createElement("p");
+                            pDate.textContent = post['datetime'];
+                            var pContent = document.createElement("p");
+                            console.log(post['content']);
+                            pContent.innerHTML = post['content'].replaceAll("\r\n", "<br>");
+                            newPostDiv.appendChild(pUsername);
+                            newPostDiv.appendChild(pDate);
+                            newPostDiv.appendChild(pContent);
+                            document.getElementById("userPosts").appendChild(newPostDiv);
+                            document.getElementById("userPosts").appendChild(document.createElement("hr"));
+                        }
+                    })
+                    .catch(err => console.log(err));
+            }
+
+            showAllPosts();
+        </script>
+    </div>
 {% endif %}
 <script>
     function showUsers() {

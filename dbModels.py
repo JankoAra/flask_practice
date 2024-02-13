@@ -11,10 +11,13 @@ class Users(db.Model):
     password = db.Column(db.String(255), nullable=False)
     username = db.Column(db.String(45), nullable=False, unique=True)
 
+    posts = db.relationship('Posts', backref='author', lazy=True)
+
     def __init__(self, emailParam, passwordParam, usernameParam):
         self.email = emailParam
         self.password = passwordParam
         self.username = usernameParam
+
 
 class Pokes(db.Model):
     __tablename__ = 'pokes'
@@ -32,3 +35,16 @@ class Pokes(db.Model):
         self.userPoking = userPokingParam
         self.userPoked = userPokedParam
         self.status = statusParam
+
+
+class Posts(db.Model):
+    __tablename__ = 'posts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(500), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE'), nullable=False)
+    datetime = db.Column(db.DateTime, server_default=db.text("current_timestamp()"))
+
+    def __init__(self, authorID, content):
+        self.author_id = authorID
+        self.content = content

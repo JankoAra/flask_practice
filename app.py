@@ -1,17 +1,15 @@
+import os
 from datetime import datetime
 
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
-from sqlalchemy import create_engine, update
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, joinedload
-import os
-
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
+from sqlalchemy import update
+from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
 from exampleBlueprint.examples import bp
-
-from flask_cors import CORS
+from api.apiBlueprint import api
 
 app = Flask(__name__)
 CORS(app)
@@ -19,7 +17,7 @@ bcrypt = Bcrypt(app)
 
 # sql connection
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/flasktest"
-from dbModels import db, Users, Pokes
+from dbModels import db, Users, Pokes, Posts
 
 db.init_app(app)
 
@@ -40,6 +38,7 @@ app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB
 
 # register all blueprints after setting up configurations
 app.register_blueprint(bp, url_prefix='/examples')
+app.register_blueprint(api, url_prefix='/api')
 
 
 @app.route('/')
@@ -140,7 +139,7 @@ def my_pokes():
         user = Users.query.filter(Users.username == session['username']).first()
         # using joinedload to eagerly load user1 before closing dbSession
         pokes = Pokes.query.options(joinedload(Pokes.user1)).filter(Pokes.userPoked == user.id,
-                                                                Pokes.status == 'A').all()
+                                                                    Pokes.status == 'A').all()
     return render_template("mypokes.html", pokes=pokes)
 
 
@@ -177,6 +176,19 @@ def upload_file():
     return redirect(url_for('index'))
 
 
+@app.route('/newpost', methods=['POST'])
+def uploadAPost():
+    username = session['username']
+    content = request.form['postContent']
+    print(username, content)
+    with app.app_context():
+        user = Users.query.filter_by(username=username).first()
+        post = Posts(user.id, content)
+        db.session.add(post)
+        db.session.commit()
+    return redirect(url_for("index"))
+
+
 @app.route("/logout")
 def logout():
     session.pop("username", None)
@@ -185,6 +197,6 @@ def logout():
 
 if __name__ == '__main__':
     app.secret_key = "dev"
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
