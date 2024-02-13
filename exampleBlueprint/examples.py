@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, sessio
 from flask_mail import Message
 from sqlalchemy.orm import Session
 
-from models import PrvaTabela, DrugaTabela
+from sqlacodegen_models_generation.models import PrvaTabela, DrugaTabela
 
 bp = Blueprint("examples", __name__, template_folder='exampleTemplates')
 

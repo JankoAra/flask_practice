@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
-class User(db.Model):
+class Users(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -16,7 +16,7 @@ class User(db.Model):
         self.password = passwordParam
         self.username = usernameParam
 
-class Poke(db.Model):
+class Pokes(db.Model):
     __tablename__ = 'pokes'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -25,8 +25,8 @@ class Poke(db.Model):
     status = db.Column(db.CHAR(1), nullable=False)
     time = db.Column(db.DateTime, nullable=False, server_default=db.text("current_timestamp()"))
 
-    user = db.relationship('User', primaryjoin='Poke.userPoked == User.id')
-    user1 = db.relationship('User', primaryjoin='Poke.userPoking == User.id')
+    user = db.relationship('Users', primaryjoin='Pokes.userPoked == Users.id')
+    user1 = db.relationship('Users', primaryjoin='Pokes.userPoking == Users.id')
 
     def __init__(self, userPokingParam, userPokedParam, statusParam):
         self.userPoking = userPokingParam

@@ -1,0 +1,11 @@
+alembic init alembic
+- kreira fajlove za alembic
+- podesiti konekciju ka bazi u alembic.ini (sqlalchemy.url)
+- podesiti metadata u alembic/env.py    (from dbModels import db
+                                        target_metadata = db.Model.metadata)
+
+alembic revision --autogenerate -m "poruka"
+- kreira fajl sa zapisima o promenama
+
+alembic upgrade head
+- commituje promene u bazi

@@ -10,10 +10,6 @@ from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 
 from exampleBlueprint.examples import bp
-from models import DrugaTabela, PrvaTabela, User, Poke, Base
-
-
-from flask_mail import Mail
 
 from flask_cors import CORS
 
@@ -21,32 +17,26 @@ app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
 
-
-
 # sql connection
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/testbaza"
-from dbModels import db
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/flasktest"
+from dbModels import db, Users, Pokes
+
 db.init_app(app)
-# Define the SQLAlchemy engine and session
-
-# engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-# Session = sessionmaker(bind=engine)
-# Base.metadata.create_all(bind=engine)
-
 
 # config for file upload
 app.config['UPLOAD_FOLDER'] = './uploads/'
 # Maximum allowed file size for upload (in bytes)
 app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB
 
+# from flask_mail import Mail
 # config for mail sending using flask_mail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'mail_username'
-app.config['MAIL_PASSWORD'] = 'password'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-mail = Mail(app)
+# app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+# app.config['MAIL_PORT'] = 465
+# app.config['MAIL_USERNAME'] = 'mail_username'
+# app.config['MAIL_PASSWORD'] = 'password'
+# app.config['MAIL_USE_TLS'] = False
+# app.config['MAIL_USE_SSL'] = True
+# mail = Mail(app)
 
 # register all blueprints after setting up configurations
 app.register_blueprint(bp, url_prefix='/examples')
@@ -73,25 +63,22 @@ def register():
     email = request.form['email']
     password = request.form['password']
     username = request.form['username']
-    dbSession = Session()
-    if email and password and username:
-        user = dbSession.query(User).filter_by(email=email).first()
-        if user is not None:
-            flash("Email is taken")
-            dbSession.close()
-            return redirect(url_for('index'))
-        user = dbSession.query(User).filter_by(username=username).first()
-        if user is not None:
-            flash("Username is taken")
-            dbSession.close()
-            return redirect(url_for('index'))
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(emailParam=email, passwordParam=hashed_password, usernameParam=username)
-        dbSession.add(user)
-        dbSession.commit()
-        flash("User created")
-        session['username'] = username
-    dbSession.close()
+    with app.app_context():
+        if email and password and username:
+            user = Users.query.filter_by(email=email).first()
+            if user is not None:
+                flash("Email is taken")
+                return redirect(url_for('index'))
+            user = Users.query.filter_by(username=username).first()
+            if user is not None:
+                flash("Username is taken")
+                return redirect(url_for('index'))
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            user = Users(emailParam=email, passwordParam=hashed_password, usernameParam=username)
+            db.session.add(user)
+            db.session.commit()
+            flash("User created")
+            session['username'] = username
     return redirect(url_for('index'))
 
 
@@ -99,33 +86,31 @@ def register():
 def login():
     email = request.form['email']
     password = request.form['password']
-    dbSession = Session()
-    if email and password:
-        user = dbSession.query(User).filter_by(email=email).first()
-        if user is not None:
-            if bcrypt.check_password_hash(user.password, password):
-                session['username'] = user.username
+    with app.app_context():
+        if email and password:
+            user = Users.query.filter_by(email=email).first()
+            if user is not None:
+                if bcrypt.check_password_hash(user.password, password):
+                    session['username'] = user.username
+                else:
+                    flash("Username or password are wrong")
             else:
                 flash("Username or password are wrong")
-        else:
-            flash("Username or password are wrong")
-    dbSession.close()
     return redirect(url_for('index'))
 
 
 @app.route('/get_users')
 def get_users():
-    dbSession = Session()
-    users = dbSession.query(User).all()
-    user_data = [{'username': user.username} for user in users]
-    dbSession.close()
+    with app.app_context():
+        users = Users.query.all()
+        user_data = [{'username': user.username} for user in users]
     return jsonify(user_data)
 
 
 @app.route('/newpoke')
 def new_poke():
-    with Session() as dbSession:
-        users = dbSession.query(User).filter(User.username != session['username']).all()
+    with app.app_context():
+        users = Users.query.filter(Users.username != session['username']).all()
     return render_template("newpoke.html", users=users)
 
 
@@ -135,16 +120,15 @@ def create_poke(usernamePoked):
     pokeID = request.args.get('poke')
     print(returnPoke, pokeID)
     pokeID = int(pokeID) if pokeID is not None else None
-    dbSession = Session()
-    if returnPoke and pokeID:
-        stmt = update(Poke).where(Poke.id == pokeID).values(status='N')
-        dbSession.execute(stmt)
-    userPoked = dbSession.query(User).filter(User.username == usernamePoked).first()
-    userPoking = dbSession.query(User).filter(User.username == session['username']).first()
-    poke = Poke(userPoking.id, userPoked.id, 'A')
-    dbSession.add(poke)
-    dbSession.commit()
-    dbSession.close()
+    with app.app_context():
+        if returnPoke and pokeID:
+            stmt = update(Pokes).where(Pokes.id == pokeID).values(status='N')
+            db.session.execute(stmt)
+        userPoked = Users.query.filter(Users.username == usernamePoked).first()
+        userPoking = Users.query.filter(Users.username == session['username']).first()
+        poke = Pokes(userPoking.id, userPoked.id, 'A')
+        db.session.add(poke)
+        db.session.commit()
     if returnPoke:
         return redirect(url_for('my_pokes'))
     return redirect(url_for('index'))
@@ -152,24 +136,22 @@ def create_poke(usernamePoked):
 
 @app.route('/mypokes')
 def my_pokes():
-    dbSession = Session()
-    user = dbSession.query(User).filter(User.username == session['username']).first()
-    # using joinedload to eagerly load user1 before closing dbSession
-    pokes = dbSession.query(Poke).options(joinedload("user1")).filter(Poke.userPoked == user.id,
-                                                                      Poke.status == 'A').all()
-    dbSession.close()
+    with app.app_context():
+        user = Users.query.filter(Users.username == session['username']).first()
+        # using joinedload to eagerly load user1 before closing dbSession
+        pokes = Pokes.query.options(joinedload(Pokes.user1)).filter(Pokes.userPoked == user.id,
+                                                                Pokes.status == 'A').all()
     return render_template("mypokes.html", pokes=pokes)
 
 
 @app.route('/ignorepoke/<int:pokeID>')
 def ignore_poke(pokeID):
-    dbSession = Session()
-    print(pokeID)
-    if pokeID:
-        stmt = update(Poke).where(Poke.id == pokeID).values(status='N')
-        dbSession.execute(stmt)
-        dbSession.commit()
-    dbSession.close()
+    with app.app_context():
+        print(pokeID)
+        if pokeID:
+            stmt = update(Pokes).where(Pokes.id == pokeID).values(status='N')
+            db.session.execute(stmt)
+            db.session.commit()
     return redirect(url_for('my_pokes'))
 
 
@@ -204,6 +186,5 @@ def logout():
 if __name__ == '__main__':
     app.secret_key = "dev"
     with app.app_context():
-        db.drop_all()
         db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
