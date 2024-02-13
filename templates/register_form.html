@@ -13,20 +13,31 @@
             }
         }
     </script>
+    <script src={{ url_for('static',filename='restFunctions.js') }}></script>
 </head>
 <body>
 <a href={{ url_for('index') }}>Back to index</a>
-<form method="post" action={{ url_for('register') }}>
+{#onsubmit vraca true ili false, ako je false submit se prekida#}
+<form id="registerForm" method="post" action="{{ url_for('api.registerUser') }}"
+      data-redirect-url="{{ url_for("index") }}">
     <p>Enter username:</p>
-    <p><input type="text" name="username"></p>
+    <p><input type="text" name="username" id="username"></p>
     <p>Enter email:</p>
-    <p><input type="text" name="email"></p>
+    <p><input type="text" name="email" id="email"></p>
     <p>Enter password:</p>
     <p>
         <input type="password" name="password" id="password">
         <button type="button" onclick="togglePassword()">Show/Hide</button>
     </p>
     <p><input type="submit" value="submit"></p>
+    {#    <button onclick="registerUser()">Submit via JavaScript</button>#}
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            registerUser();
+            window.location.href = this.getAttribute("data-redirect-url");
+        });
+    </script>
 </form>
 </body>
 </html>

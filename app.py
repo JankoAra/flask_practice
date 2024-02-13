@@ -2,22 +2,22 @@ import os
 from datetime import datetime
 
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
-from flask_bcrypt import Bcrypt
-from flask_cors import CORS
 from sqlalchemy import update
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
-from exampleBlueprint.examples import bp
 from api.apiBlueprint import api
+from dbModels import Users, Pokes, Posts
+from exampleBlueprint.examples import bp
+from extensions import bcrypt, db, cors
 
 app = Flask(__name__)
-CORS(app)
-bcrypt = Bcrypt(app)
+cors.init_app(app)
+bcrypt.init_app(app)
 
 # sql connection
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/flasktest"
-from dbModels import db, Users, Pokes, Posts
+
 
 db.init_app(app)
 

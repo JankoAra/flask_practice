@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from extensions import db
 
 
 class Users(db.Model):
@@ -17,6 +15,13 @@ class Users(db.Model):
         self.email = emailParam
         self.password = passwordParam
         self.username = usernameParam
+
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "username": self.username
+        }
+        return d
 
 
 class Pokes(db.Model):
@@ -48,3 +53,12 @@ class Posts(db.Model):
     def __init__(self, authorID, content):
         self.author_id = authorID
         self.content = content
+
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "content": self.content,
+            "authorUsername": self.author.username,
+            "datetime": self.datetime
+        }
+        return d

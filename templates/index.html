@@ -52,11 +52,11 @@
     <h2>Posts from users</h2>
     <div id="userPosts">
         <script>
-            function showAllPosts() {
-                fetch('http://localhost:5000/api/getAllPosts')
+            function showPosts() {
+                fetch('http://localhost:5000/api/getPosts?limit=8')
                     .then(res => res.json())
                     .then(res => {
-                        console.log(res);
+                        //console.log(res);
                         for (const resKey in res) {
                             var post = res[resKey];
                             //console.log(post);
@@ -66,7 +66,7 @@
                             var pDate = document.createElement("p");
                             pDate.textContent = post['datetime'];
                             var pContent = document.createElement("p");
-                            console.log(post['content']);
+                            //console.log(post['content']);
                             pContent.innerHTML = post['content'].replaceAll("\r\n", "<br>");
                             newPostDiv.appendChild(pUsername);
                             newPostDiv.appendChild(pDate);
@@ -78,7 +78,7 @@
                     .catch(err => console.log(err));
             }
 
-            showAllPosts();
+            showPosts();
         </script>
     </div>
 {% endif %}
