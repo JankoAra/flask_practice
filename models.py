@@ -5,17 +5,21 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
-metadata = Base.metadata
-
 
 class DrugaTabela(Base):
     __tablename__ = 'drugaTabela'
 
     id = Column(INTEGER(11), primary_key=True)
-    email = Column(String(45))
+    email = Column(String(45), nullable=False)
+    novi = Column(INTEGER(11))
 
     def __init__(self, emailParam):
         self.email = emailParam
+
+class NovaTabela(Base):
+    __tablename__='novatabela'
+
+    id = Column(INTEGER, primary_key=True)
 
 
 class PrvaTabela(Base):

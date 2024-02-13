@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from sqlalchemy import create_engine, update
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, joinedload
 import os
 
@@ -9,7 +10,8 @@ from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 
 from exampleBlueprint.examples import bp
-from models import DrugaTabela, User, Poke
+from models import DrugaTabela, PrvaTabela, User, Poke, Base
+
 
 from flask_mail import Mail
 
@@ -19,11 +21,18 @@ app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
 
+
+
 # sql connection
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/prvaBaza"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/testbaza"
+from dbModels import db
+db.init_app(app)
 # Define the SQLAlchemy engine and session
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-Session = sessionmaker(bind=engine)
+
+# engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+# Session = sessionmaker(bind=engine)
+# Base.metadata.create_all(bind=engine)
+
 
 # config for file upload
 app.config['UPLOAD_FOLDER'] = './uploads/'
@@ -194,4 +203,7 @@ def logout():
 
 if __name__ == '__main__':
     app.secret_key = "dev"
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
