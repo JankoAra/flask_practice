@@ -18,7 +18,7 @@ def hello():
 def getPosts():
     with current_app.app_context():
         limit = request.args.get("limit")
-        if limit is not None:
+        if limit is not None and limit != "undefined":
             limit = int(limit)
             posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).limit(limit).all()
         else:

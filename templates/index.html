@@ -8,6 +8,7 @@
             display: none;
         }
     </style>
+    <script src={{ url_for("static", filename="restFunctions.js") }}></script>
 </head>
 <body>
 {% with messages = get_flashed_messages() %}
@@ -52,33 +53,7 @@
     <h2>Posts from users</h2>
     <div id="userPosts">
         <script>
-            function showPosts() {
-                fetch('http://localhost:5000/api/getPosts?limit=8')
-                    .then(res => res.json())
-                    .then(res => {
-                        //console.log(res);
-                        for (const resKey in res) {
-                            var post = res[resKey];
-                            //console.log(post);
-                            var newPostDiv = document.createElement("div");
-                            var pUsername = document.createElement("p");
-                            pUsername.textContent = post['authorUsername'];
-                            var pDate = document.createElement("p");
-                            pDate.textContent = post['datetime'];
-                            var pContent = document.createElement("p");
-                            //console.log(post['content']);
-                            pContent.innerHTML = post['content'].replaceAll("\r\n", "<br>");
-                            newPostDiv.appendChild(pUsername);
-                            newPostDiv.appendChild(pDate);
-                            newPostDiv.appendChild(pContent);
-                            document.getElementById("userPosts").appendChild(newPostDiv);
-                            document.getElementById("userPosts").appendChild(document.createElement("hr"));
-                        }
-                    })
-                    .catch(err => console.log(err));
-            }
-
-            showPosts();
+            showPosts(8);
         </script>
     </div>
 {% endif %}

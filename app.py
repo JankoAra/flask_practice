@@ -18,7 +18,6 @@ bcrypt.init_app(app)
 # sql connection
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/flasktest"
 
-
 db.init_app(app)
 
 # config for file upload
@@ -57,28 +56,28 @@ def form(action):
     return "greska"
 
 
-@app.route('/register', methods=["POST"])
-def register():
-    email = request.form['email']
-    password = request.form['password']
-    username = request.form['username']
-    with app.app_context():
-        if email and password and username:
-            user = Users.query.filter_by(email=email).first()
-            if user is not None:
-                flash("Email is taken")
-                return redirect(url_for('index'))
-            user = Users.query.filter_by(username=username).first()
-            if user is not None:
-                flash("Username is taken")
-                return redirect(url_for('index'))
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-            user = Users(emailParam=email, passwordParam=hashed_password, usernameParam=username)
-            db.session.add(user)
-            db.session.commit()
-            flash("User created")
-            session['username'] = username
-    return redirect(url_for('index'))
+# @app.route('/register', methods=["POST"])
+# def register():
+#     email = request.form['email']
+#     password = request.form['password']
+#     username = request.form['username']
+#     with app.app_context():
+#         if email and password and username:
+#             user = Users.query.filter_by(email=email).first()
+#             if user is not None:
+#                 flash("Email is taken")
+#                 return redirect(url_for('index'))
+#             user = Users.query.filter_by(username=username).first()
+#             if user is not None:
+#                 flash("Username is taken")
+#                 return redirect(url_for('index'))
+#             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+#             user = Users(emailParam=email, passwordParam=hashed_password, usernameParam=username)
+#             db.session.add(user)
+#             db.session.commit()
+#             flash("User created")
+#             session['username'] = username
+#     return redirect(url_for('index'))
 
 
 @app.route('/login', methods=["POST"])
