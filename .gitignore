@@ -17,3 +17,7 @@ build/
 *.log
 
 uploads/
+
+*.wsgi
+
+*.conf

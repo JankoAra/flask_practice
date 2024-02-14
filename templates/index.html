@@ -51,11 +51,35 @@
     <hr>
 
     <h2>Posts from users</h2>
-    <div id="userPosts">
+    <div id="userPosts" data-limit="8">
         <script>
-            showPosts(8);
+            var userPostsDiv = document.getElementById("userPosts");
+            var dataLimit = userPostsDiv.getAttribute("data-limit");
+
+            // Convert the data-limit value to a number if needed
+            var limitNumber = parseInt(dataLimit, 10);
+            showPosts(limitNumber);
         </script>
     </div>
+    <script>
+        async function loadMorePosts() {
+            var userPostsDiv = document.getElementById("userPosts");
+            var currentLimit = userPostsDiv.getAttribute("data-limit");
+            currentLimit = parseInt(currentLimit, 10);
+            const newPostsToLoad = 4;
+            var newLimit = currentLimit + newPostsToLoad;
+            userPostsDiv.setAttribute('data-limit', newLimit.toString());
+            var postsReturned = await showPosts(newLimit);
+            //console.log(newLimit, postsReturned);
+            if (postsReturned && postsReturned < newLimit) {
+                document.getElementById("loadMorePostsLink").remove();
+                var msg = document.createElement("p");
+                msg.textContent = "All posts loaded!";
+                userPostsDiv.insertAdjacentElement("afterend", msg);
+            }
+        }
+    </script>
+    <a href="#loadMorePostsLink" onclick="loadMorePosts()" id="loadMorePostsLink">Load more posts</a>
 {% endif %}
 <script>
     function showUsers() {

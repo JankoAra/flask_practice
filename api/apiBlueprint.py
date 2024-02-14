@@ -1,8 +1,7 @@
 from flask import Blueprint, current_app, jsonify, request, flash
 from sqlalchemy import or_
 
-from dbModels import Posts, Users, Pokes
-
+from dbModels import Posts, Users
 from extensions import bcrypt, db
 
 api = Blueprint("api", __name__)

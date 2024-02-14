@@ -28,10 +28,14 @@ function registerUser() {
 }
 
 function showPosts(limit) {
-    fetch('http://' + host + '/api/getPosts?limit=' + limit)
+    return fetch('http://' + host + '/api/getPosts?limit=' + limit)
         .then(res => res.json())
         .then(res => {
             //console.log(res);
+            var userPostsDiv = document.getElementById('userPosts');
+            while (userPostsDiv.firstChild) {
+                userPostsDiv.removeChild(userPostsDiv.firstChild);
+            }
             for (const resKey in res) {
                 var post = res[resKey];
                 //console.log(post);
@@ -49,6 +53,11 @@ function showPosts(limit) {
                 document.getElementById("userPosts").appendChild(newPostDiv);
                 document.getElementById("userPosts").appendChild(document.createElement("hr"));
             }
+            //console.log(res.length);
+            return res.length;
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+            console.log(err);
+            return null;
+        });
 }
