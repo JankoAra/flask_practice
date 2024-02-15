@@ -10,7 +10,7 @@
     </style>
     <script src={{ url_for("static", filename="restFunctions.js") }}></script>
 </head>
-<body>
+<body style="margin-bottom: 0">
 {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul>
@@ -66,7 +66,7 @@
             var userPostsDiv = document.getElementById("userPosts");
             var currentLimit = userPostsDiv.getAttribute("data-limit");
             currentLimit = parseInt(currentLimit, 10);
-            const newPostsToLoad = 4;
+            const newPostsToLoad = 8;
             var newLimit = currentLimit + newPostsToLoad;
             userPostsDiv.setAttribute('data-limit', newLimit.toString());
             var postsReturned = await showPosts(newLimit);
@@ -80,6 +80,10 @@
         }
     </script>
     <a href="#loadMorePostsLink" onclick="loadMorePosts()" id="loadMorePostsLink">Load more posts</a>
+
+    <div style="background-color: blue; height: 50px;margin-top: 20px;" >
+
+    </div>
 {% endif %}
 <script>
     function showUsers() {

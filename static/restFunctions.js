@@ -50,6 +50,43 @@ function showPosts(limit) {
                 newPostDiv.appendChild(pUsername);
                 newPostDiv.appendChild(pDate);
                 newPostDiv.appendChild(pContent);
+                var likeButton = document.createElement("button");
+                likeButton.setAttribute("value", "like post");
+                likeButton.textContent = "like post";
+                //likeButton.setAttribute("id", "likeButton");
+                likeButton.setAttribute("data-post-id", post['id'] + "");
+
+                function like(event) {
+                    //var btn = document.getElementById("likeButton");
+                    var btn = event.target;
+                    var postID = btn.getAttribute("data-post-id");
+                    postID = parseInt(postID);
+                    if (btn.src.includes("like_img.png")) {
+                        console.log("Changing image to active");
+                        btn.src = "static/like_active.png";
+                        btn.width = 25;
+                        btn.height = 25;
+                        console.log("liked post with id: ", postID);
+                    } else if (btn.src.includes("like_active.png")) {
+                        console.log("Changing image to default");
+                        btn.src = "static/like_img.png";
+                        btn.width = 30;
+                        btn.height = 30;
+                        // You can add logic here for unliking if needed
+                    }
+                }
+
+                likeButton.addEventListener("click", like);
+                newPostDiv.appendChild(likeButton);
+
+                var likeImg = document.createElement("img");
+                likeImg.setAttribute("data-post-id", post['id'] + "");
+                likeImg.src = 'static/like_img.png';
+                likeImg.addEventListener("click", like);
+                likeImg.width = 30;
+                likeImg.height = 30;
+                likeImg.style.cursor = 'pointer';
+                newPostDiv.appendChild(likeImg);
                 document.getElementById("userPosts").appendChild(newPostDiv);
                 document.getElementById("userPosts").appendChild(document.createElement("hr"));
             }
