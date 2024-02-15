@@ -1,4 +1,9 @@
 const host = 'localhost:5000';
+var username = null;
+
+function setUsername(name) {
+    username = name;
+}
 
 function registerUser() {
     var username = document.getElementById("username").value;
@@ -24,7 +29,29 @@ function registerUser() {
         .catch(err => {
             console.log("usao u catch");
             console.log("Error: ", err);
+        });
+}
+
+function createLike(username, postID) {
+    var requestData = {
+        username: username, postID: postID
+    }
+    var requestOptions = {
+        method: "POST", headers: {
+            'Content-Type': 'application/json',
+        }, body: JSON.stringify(requestData)
+    }
+    fetch("http://" + host + "/api/createLike", requestOptions)
+        .then(res => {
+            return res.json();
         })
+        .then(data => {
+            console.log("response: ", data['message']);
+        })
+        .catch(err => {
+            console.log("usao u catch");
+            console.log("Error: ", err);
+        });
 }
 
 function showPosts(limit) {
@@ -61,12 +88,14 @@ function showPosts(limit) {
                     var btn = event.target;
                     var postID = btn.getAttribute("data-post-id");
                     postID = parseInt(postID);
+
                     if (btn.src.includes("like_img.png")) {
                         console.log("Changing image to active");
                         btn.src = "static/like_active.png";
                         btn.width = 25;
                         btn.height = 25;
                         console.log("liked post with id: ", postID);
+                        createLike(username, postID);
                     } else if (btn.src.includes("like_active.png")) {
                         console.log("Changing image to default");
                         btn.src = "static/like_img.png";

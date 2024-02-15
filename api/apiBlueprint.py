@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, jsonify, request, flash
 from sqlalchemy import or_
 
-from dbModels import Posts, Users
+from dbModels import Posts, Users, Likes
 from extensions import bcrypt, db
 
 api = Blueprint("api", __name__)
@@ -62,3 +62,39 @@ def getAllUsers():
         users = Users.query.order_by(Users.id.asc()).all()
         user_data = [user.to_dict() for user in users]
         return jsonify(user_data)
+
+
+@api.route("/getUser")
+def getUsers():
+    username = request.get_json().get('username')
+    with current_app.app_context():
+        users = Users.query.filter_by(username=username).all()
+        user_data = [user.to_dict() for user in users]
+        return jsonify(user_data)
+
+
+@api.route('/createLike', methods=["POST"])
+def createLike():
+    try:
+        status = 500
+        request_data = request.get_json()
+        username = request_data.get("username")
+        post_id = request_data.get("postID")
+        if not username or not post_id:
+            status = 409
+            raise Exception("Like parameters missing!")
+        with current_app.app_context():
+            user = Users.query.filter_by(username=username).first()
+            user_id = user.id
+            likes = Likes.query.filter_by(user_id=user_id, post_id=post_id).all()
+            if likes:
+                status = 409
+                raise Exception("User already liked that post!")
+            new_like = Likes(user_id, post_id)
+            db.session.add(new_like)
+            db.session.commit()
+            print("like created")
+            status = 200
+            return jsonify({"message": "Like created!"}), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status

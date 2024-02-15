@@ -62,3 +62,17 @@ class Posts(db.Model):
             "datetime": self.datetime
         }
         return d
+
+
+class Likes(db.Model):
+    __tablename__ = 'likes'
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE'), primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id', onupdate='CASCADE'), primary_key=True)
+
+    user = db.relationship('Users', primaryjoin='Likes.user_id == Users.id')
+    post = db.relationship('Posts', primaryjoin='Likes.post_id == Posts.id')
+
+    def __init__(self, user_id, post_id):
+        self.user_id = user_id
+        self.post_id = post_id

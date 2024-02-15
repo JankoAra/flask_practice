@@ -38,6 +38,9 @@
     <ul id="usersListContent"></ul>
 </div>
 {% if session.username %}
+    <script>
+        setUsername("{{ session.username }}");
+    </script>
     <ul>
         <li><a href={{ url_for('new_poke') }}>Poke someone</a></li>
         <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
@@ -81,7 +84,7 @@
     </script>
     <a href="#loadMorePostsLink" onclick="loadMorePosts()" id="loadMorePostsLink">Load more posts</a>
 
-    <div style="background-color: blue; height: 50px;margin-top: 20px;" >
+    <div style="background-color: blue; height: 50px;margin-top: 20px;">
 
     </div>
 {% endif %}
