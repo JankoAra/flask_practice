@@ -13,21 +13,26 @@ def hello():
     return "Hello from api"
 
 
-@api.route("/getPosts")
-def getPosts():
-    with current_app.app_context():
-        limit = request.args.get("limit")
-        if limit is not None and limit != "undefined":
-            limit = int(limit)
-            posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).limit(limit).all()
-        else:
-            posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).all()
-        post_data = [post.to_dict() for post in posts]
-    return jsonify(post_data)
+# Users API
+@api.route("/users/registerUser", methods=["POST"])
+def create_user():
+    """
+    Makes a new user with provided json parameters if username and email are unique
 
+    Request JSON:
+        {
+            "username": "john_doe",
 
-@api.route("/registerUser", methods=["POST"])
-def registerUser():
+            "email": "john@example.com",
+
+            "password": "secure_password"
+        }
+
+    Response:
+        201 Created - User created successfully.
+
+        JSON: {"id": 1, "username": "john_doe"}
+    """
     try:
         status = 500
         request_data = request.get_json()
@@ -49,28 +54,78 @@ def registerUser():
             db.session.add(user)
             db.session.commit()
             flash("User created!")
-            status = 200
-            return jsonify({"message": "User created!"}), status
+            status = 201
+            return jsonify(user.to_dict()), status
     except Exception as e:
         flash(str(e))
         return jsonify({'message': str(e)}), status
 
 
-@api.route("/getAllUsers")
-def getAllUsers():
-    with current_app.app_context():
-        users = Users.query.order_by(Users.id.asc()).all()
-        user_data = [user.to_dict() for user in users]
-        return jsonify(user_data)
+@api.route("/users/getByUsername", methods=['GET'])
+def get_user_by_username():
+    try:
+        status = 500
+        username = request.args.get("username")
+        if not username:
+            status = 409
+            raise Exception("Username missing!")
+        with current_app.app_context():
+            user = Users.query.filter_by(username=username).first()
+            if not user:
+                status = 409
+                raise Exception("User not found!")
+            status = 200
+            return jsonify(user.to_dict()), status
+    except Exception as e:
+        flash(str(e))
+        return jsonify({'message': str(e)}), status
 
 
-@api.route("/getUser")
-def getUsers():
-    username = request.get_json().get('username')
+@api.route("/users/<int:id>", methods=['GET'])
+def get_user_by_id(id):
+    try:
+        status = 500
+        if not id:
+            status = 409
+            raise Exception("ID missing!")
+        with current_app.app_context():
+            user = Users.query.get(id)
+            if not user:
+                status = 409
+                raise Exception("User not found!")
+            status = 200
+            return jsonify(user.to_dict()), status
+    except Exception as e:
+        flash(str(e))
+        return jsonify({'message': str(e)}), status
+
+
+@api.route("/users/all")
+def get_all_users():
+    try:
+        status = 500
+        with current_app.app_context():
+            users = Users.query.order_by(Users.id.asc()).all()
+            user_data = [user.to_dict() for user in users]
+            status = 200
+            return jsonify(user_data), status
+    except Exception as e:
+        flash(str(e))
+        return jsonify({'message': str(e)}), status
+
+
+# Posts API
+@api.route("/getPosts")
+def getPosts():
     with current_app.app_context():
-        users = Users.query.filter_by(username=username).all()
-        user_data = [user.to_dict() for user in users]
-        return jsonify(user_data)
+        limit = request.args.get("limit")
+        if limit is not None and limit != "undefined":
+            limit = int(limit)
+            posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).limit(limit).all()
+        else:
+            posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).all()
+        post_data = [post.to_dict() for post in posts]
+    return jsonify(post_data)
 
 
 @api.route('/createLike', methods=["POST"])

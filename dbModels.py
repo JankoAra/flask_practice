@@ -31,7 +31,7 @@ class Pokes(db.Model):
     userPoking = db.Column(db.ForeignKey('users.id', onupdate='CASCADE'), nullable=False, index=True)
     userPoked = db.Column(db.ForeignKey('users.id', onupdate='CASCADE'), nullable=False, index=True)
     status = db.Column(db.CHAR(1), nullable=False)
-    time = db.Column(db.DateTime, nullable=False, server_default=db.text("current_timestamp()"))
+    datetime = db.Column(db.DateTime, nullable=False, server_default=db.text("current_timestamp()"))
 
     user = db.relationship('Users', primaryjoin='Pokes.userPoked == Users.id')
     user1 = db.relationship('Users', primaryjoin='Pokes.userPoking == Users.id')
