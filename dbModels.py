@@ -58,7 +58,7 @@ class Posts(db.Model):
         d = {
             "id": self.id,
             "content": self.content,
-            "authorUsername": self.author.username,
+            "author": self.author.to_dict(),
             "datetime": self.datetime
         }
         return d

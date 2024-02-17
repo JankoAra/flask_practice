@@ -18,7 +18,7 @@
 <body>
 <a href={{ url_for('index') }}>Back to index</a>
 {#onsubmit vraca true ili false, ako je false submit se prekida#}
-<form id="registerForm" method="post" action="{{ url_for('api.users/registerUser') }}"
+<form id="registerForm" method="post" action="{{ url_for('api.users/register') }}"
       data-redirect-url="{{ url_for("index") }}">
     <p>Enter username:</p>
     <p><input type="text" name="username" id="username"></p>

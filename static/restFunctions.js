@@ -19,7 +19,7 @@ function registerUser() {
         }, body: JSON.stringify(requestData)
     }
     console.log("sending request to server");
-    fetch("http://" + host + "/api/registerUser", requestOptions)
+    fetch("http://" + host + "/api/register", requestOptions)
         .then(res => {
             return res.json();
         })
@@ -55,7 +55,7 @@ function createLike(username, postID) {
 }
 
 function showPosts(limit) {
-    return fetch('http://' + host + '/api/getPosts?limit=' + limit)
+    return fetch('http://' + host + '/api/posts/all?limit=' + limit)
         .then(res => res.json())
         .then(res => {
             //console.log(res);
@@ -68,7 +68,7 @@ function showPosts(limit) {
                 //console.log(post);
                 var newPostDiv = document.createElement("div");
                 var pUsername = document.createElement("p");
-                pUsername.textContent = post['authorUsername'];
+                pUsername.textContent = post.author.username;
                 var pDate = document.createElement("p");
                 pDate.textContent = post['datetime'];
                 var pContent = document.createElement("p");
@@ -116,6 +116,11 @@ function showPosts(limit) {
                 likeImg.height = 30;
                 likeImg.style.cursor = 'pointer';
                 newPostDiv.appendChild(likeImg);
+                var delBtn = document.createElement("button");
+                delBtn.textContent = "delete post";
+                delBtn.setAttribute("data-post-id", post['id'] + "");
+                delBtn.addEventListener("click", deletePost);
+                newPostDiv.appendChild(delBtn);
                 document.getElementById("userPosts").appendChild(newPostDiv);
                 document.getElementById("userPosts").appendChild(document.createElement("hr"));
             }
@@ -126,4 +131,31 @@ function showPosts(limit) {
             console.log(err);
             return null;
         });
+}
+
+async function deletePost(event) {
+    console.log("deleting")
+    var btn = event.target;
+    var postID = btn.getAttribute("data-post-id");
+    var requestData = {
+        username: username, postID: postID
+    }
+    var requestOptions = {
+        method: "DELETE", headers: {
+            'Content-Type': 'application/json',
+        }, body: JSON.stringify(requestData)
+    }
+    await fetch("http://" + host + "/api/posts/delete", requestOptions)
+        .then(res => {
+            console.log(res);
+            return res.json();
+        })
+        .then(data => {
+            console.log("response: ", data['message']);
+        })
+        .catch(err => {
+            console.log("usao u catch");
+            console.log("Error: ", err);
+        });
+    window.location.reload();
 }
