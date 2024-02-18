@@ -76,3 +76,10 @@ class Likes(db.Model):
     def __init__(self, user_id, post_id):
         self.user_id = user_id
         self.post_id = post_id
+
+    def to_dict(self):
+        d = {
+            "user": self.user.to_dict(),
+            "post": self.post.to_dict()
+        }
+        return d

@@ -32,7 +32,7 @@ function registerUser() {
         });
 }
 
-function createLike(username, postID) {
+async function toggleLike(username, postID) {
     var requestData = {
         username: username, postID: postID
     }
@@ -41,7 +41,7 @@ function createLike(username, postID) {
             'Content-Type': 'application/json',
         }, body: JSON.stringify(requestData)
     }
-    fetch("http://" + host + "/api/createLike", requestOptions)
+    fetch("http://" + host + "/api/likes/toggle", requestOptions)
         .then(res => {
             return res.json();
         })
@@ -57,7 +57,7 @@ function createLike(username, postID) {
 function showPosts(limit) {
     return fetch('http://' + host + '/api/posts/all?limit=' + limit)
         .then(res => res.json())
-        .then(res => {
+        .then(async res => {
             //console.log(res);
             var userPostsDiv = document.getElementById('userPosts');
             while (userPostsDiv.firstChild) {
@@ -77,13 +77,15 @@ function showPosts(limit) {
                 newPostDiv.appendChild(pUsername);
                 newPostDiv.appendChild(pDate);
                 newPostDiv.appendChild(pContent);
-                var likeButton = document.createElement("button");
-                likeButton.setAttribute("value", "like post");
-                likeButton.textContent = "like post";
-                //likeButton.setAttribute("id", "likeButton");
-                likeButton.setAttribute("data-post-id", post['id'] + "");
 
-                function like(event) {
+
+                // var likeButton = document.createElement("button");
+                // likeButton.setAttribute("value", "like post");
+                // likeButton.textContent = "like post";
+                // //likeButton.setAttribute("id", "likeButton");
+                // likeButton.setAttribute("data-post-id", post['id'] + "");
+
+                async function like(event) {
                     //var btn = document.getElementById("likeButton");
                     var btn = event.target;
                     var postID = btn.getAttribute("data-post-id");
@@ -95,7 +97,7 @@ function showPosts(limit) {
                         btn.width = 25;
                         btn.height = 25;
                         console.log("liked post with id: ", postID);
-                        createLike(username, postID);
+
                     } else if (btn.src.includes("like_active.png")) {
                         console.log("Changing image to default");
                         btn.src = "static/like_img.png";
@@ -103,24 +105,45 @@ function showPosts(limit) {
                         btn.height = 30;
                         // You can add logic here for unliking if needed
                     }
+                    await toggleLike(username, postID);
+                    var label = document.getElementById('label-for-post-' + postID);
+                    label.textContent = await countLikesForPost(postID) + "";
                 }
 
-                likeButton.addEventListener("click", like);
-                newPostDiv.appendChild(likeButton);
+                // likeButton.addEventListener("click", like);
+                // newPostDiv.appendChild(likeButton);
+
+                var postLiked = await checkPostLiked(username, post['id']);
+                //console.log("post liked:", post['id'], postLiked);
 
                 var likeImg = document.createElement("img");
                 likeImg.setAttribute("data-post-id", post['id'] + "");
-                likeImg.src = 'static/like_img.png';
+                if (postLiked) {
+                    likeImg.src = 'static/like_active.png';
+                    likeImg.width = 25;
+                    likeImg.height = 25;
+                } else {
+                    likeImg.src = 'static/like_img.png';
+                    likeImg.width = 30;
+                    likeImg.height = 30;
+                }
                 likeImg.addEventListener("click", like);
-                likeImg.width = 30;
-                likeImg.height = 30;
                 likeImg.style.cursor = 'pointer';
                 newPostDiv.appendChild(likeImg);
-                var delBtn = document.createElement("button");
-                delBtn.textContent = "delete post";
-                delBtn.setAttribute("data-post-id", post['id'] + "");
-                delBtn.addEventListener("click", deletePost);
-                newPostDiv.appendChild(delBtn);
+
+                var label = document.createElement("label");
+                label.setAttribute("id", "label-for-post-" + post['id']);
+                label.textContent = await countLikesForPost(post['id']) + "";
+                newPostDiv.appendChild(label);
+
+                if (pUsername.textContent === username) {
+                    var delBtn = document.createElement("button");
+                    delBtn.textContent = "delete post";
+                    delBtn.setAttribute("data-post-id", post['id'] + "");
+                    delBtn.addEventListener("click", deletePost);
+                    newPostDiv.appendChild(delBtn);
+                }
+
                 document.getElementById("userPosts").appendChild(newPostDiv);
                 document.getElementById("userPosts").appendChild(document.createElement("hr"));
             }
@@ -158,4 +181,43 @@ async function deletePost(event) {
             console.log("Error: ", err);
         });
     window.location.reload();
+}
+
+async function getLikesForPost(postID) {
+    try {
+        var response = await fetch("http://" + host + "/api/likes/post/" + postID);
+        // console.log(`response for ${postID}:`);
+        // console.log(response);
+        var data = await handleErrors(response);
+        //console.log(data);
+        return data;
+    } catch (error) {
+        console.error('Error getting likes for post:', error.message);
+    }
+}
+
+const handleErrors = (response) => {
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+};
+
+async function checkPostLiked(username, postID) {
+    var likes = await getLikesForPost(postID);
+    // console.log("likes in check:", postID);
+    // console.log(likes);
+    for (const likesKey in likes) {
+        var like = likes[likesKey];
+        // console.log("in for loop:", postID);
+        // console.log(like);
+        if (like.user.username === username) return true;
+    }
+    return false;
+}
+
+async function countLikesForPost(postID) {
+    var likes = await getLikesForPost(postID);
+    //console.log(likes.length);
+    return likes.length;
 }

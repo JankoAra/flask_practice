@@ -228,8 +228,8 @@ def delete_post():
         return jsonify({'message': str(e)}), status
 
 
-@api.route('/createLike', methods=["POST"])
-def createLike():
+@api.route('/likes/toggle', methods=["POST"])
+def toggle_like():
     try:
         status = 500
         request_data = request.get_json()
@@ -241,15 +241,31 @@ def createLike():
         with current_app.app_context():
             user = Users.query.filter_by(username=username).first()
             user_id = user.id
-            likes = Likes.query.filter_by(user_id=user_id, post_id=post_id).all()
-            if likes:
-                status = 409
-                raise Exception("User already liked that post!")
+            like = Likes.query.filter_by(user_id=user_id, post_id=post_id).first()
+            if like:
+                # if user already liked the post, delete the like
+                db.session.delete(like)
+                db.session.commit()
+                status = 200
+                return jsonify({"message": "Like removed"}), status
+            # if user isn't liking the post, create new like
             new_like = Likes(user_id, post_id)
             db.session.add(new_like)
             db.session.commit()
-            print("like created")
             status = 200
             return jsonify({"message": "Like created!"}), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+@api.route("/likes/post/<int:postID>", methods=["GET"])
+def get_likes_for_post(postID):
+    status = 500
+    try:
+        with current_app.app_context():
+            likes = Likes.query.filter_by(post_id=postID).all()
+            data = [like.to_dict() for like in likes if like is not None]
+            status = 200
+            return jsonify(data), status
     except Exception as e:
         return jsonify({'message': str(e)}), status
