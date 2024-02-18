@@ -50,6 +50,8 @@ class Posts(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id', onupdate='CASCADE'), nullable=False)
     datetime = db.Column(db.DateTime, server_default=db.text("current_timestamp()"))
 
+    likes = db.relationship('Likes', backref='post', lazy='joined')
+
     def __init__(self, authorID, content):
         self.author_id = authorID
         self.content = content
@@ -59,7 +61,9 @@ class Posts(db.Model):
             "id": self.id,
             "content": self.content,
             "author": self.author.to_dict(),
-            "datetime": self.datetime
+            "datetime": self.datetime,
+            "likes": [like.to_dict() for like in self.likes],
+            "numOfLikes": len(self.likes)
         }
         return d
 
@@ -71,7 +75,8 @@ class Likes(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id', onupdate='CASCADE'), primary_key=True)
 
     user = db.relationship('Users', primaryjoin='Likes.user_id == Users.id')
-    post = db.relationship('Posts', primaryjoin='Likes.post_id == Posts.id')
+
+    # post = db.relationship('Posts', primaryjoin='Likes.post_id == Posts.id')
 
     def __init__(self, user_id, post_id):
         self.user_id = user_id
@@ -79,7 +84,7 @@ class Likes(db.Model):
 
     def to_dict(self):
         d = {
-            "user": self.user.to_dict(),
-            "post": self.post.to_dict()
+            "user": self.user.to_dict()
+            # , "post": self.post.to_dict()
         }
         return d

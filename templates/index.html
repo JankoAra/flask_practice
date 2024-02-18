@@ -8,7 +8,102 @@
             display: none;
         }
     </style>
-    <script src={{ url_for("static", filename="restFunctions.js") }}></script>
+    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
+    <script>
+        var username;
+
+        function setUsername(usr) {
+            username = usr;
+        }
+
+        async function showPosts(limit) {
+            var userPostsDiv = document.getElementById('userPosts');
+            while (userPostsDiv.firstChild) {
+                userPostsDiv.removeChild(userPostsDiv.firstChild);
+            }
+            var postsData = await getAllPosts(limit);
+            for (const postsDataKey in postsData) {
+                const post = postsData[postsDataKey];
+                var newPostDiv = document.createElement("div");
+                var pUsername = document.createElement("p");
+                pUsername.textContent = post.author.username;
+                var pDate = document.createElement("p");
+                pDate.textContent = post.dateTime;
+                var pContent = document.createElement("p");
+                pContent.innerHTML = post.content.replaceAll("\r\n", "<br>");
+                newPostDiv.appendChild(pUsername);
+                newPostDiv.appendChild(pDate);
+                newPostDiv.appendChild(pContent);
+                var likeImg = document.createElement("img");
+                likeImg.setAttribute("data-post-id", post.id);
+                var postLiked = false;
+                if (post.numOfLikes > 0) {
+                    for (var i = 0; i < post.likes.length; i++) {
+                        var l = post.likes[i];
+                        if (l.user.username === username) {
+                            postLiked = true;
+                            break;
+                        }
+                    }
+                }
+                const inactiveLikeImg = 'static/img/like_48.png';
+                const activeLikeImg = 'static/img/like_GS_48.png';
+                if (postLiked) {
+                    likeImg.src = 'static/like_active.png';
+                    likeImg.src = activeLikeImg;
+                } else {
+                    likeImg.src = 'static/like_img.png';
+                    likeImg.src = inactiveLikeImg;
+                }
+                likeImg.width = 30;
+                likeImg.height = 30;
+
+                async function like(event) {
+                    var btn = event.target;
+                    var postID = btn.getAttribute("data-post-id");
+                    postID = parseInt(postID);
+                    var label = document.getElementById('label-for-post-' + postID);
+                    let num2 = parseInt(label.textContent, 10);
+                    if (btn.src.includes(inactiveLikeImg)) {
+                        console.log("Changing image to active");
+                        btn.src = "static/like_active.png";
+                        btn.src = activeLikeImg;
+                        console.log("liked post with id: ", postID);
+                        num2++;
+
+                    } else if (btn.src.includes(activeLikeImg)) {
+                        console.log("Changing image to default");
+                        btn.src = "static/like_img.png";
+                        btn.src = inactiveLikeImg;
+                        num2--;
+                    }
+                    await toggleLike(username, postID);
+                    label.textContent = num2.toString();
+                    {#let num = await getLikesForPost(post.id);#}
+                    {#label.textContent = num.length;#}
+                }
+
+                likeImg.addEventListener("click", like);
+                likeImg.style.cursor = 'pointer';
+                newPostDiv.appendChild(likeImg);
+
+                var label = document.createElement("label");
+                label.setAttribute("id", "label-for-post-" + post['id']);
+                label.textContent = post.numOfLikes;
+                newPostDiv.appendChild(label);
+                if (post.author.username === username) {
+                    var delBtn = document.createElement("button");
+                    delBtn.textContent = "delete post";
+                    delBtn.setAttribute("data-post-id", post['id'] + "");
+                    delBtn.addEventListener("click", deletePost);
+                    newPostDiv.appendChild(delBtn);
+                }
+
+                document.getElementById("userPosts").appendChild(newPostDiv);
+                document.getElementById("userPosts").appendChild(document.createElement("hr"));
+            }
+        }
+    </script>
 </head>
 <body style="margin-bottom: 0">
 {% with messages = get_flashed_messages() %}
@@ -58,8 +153,6 @@
         <script>
             var userPostsDiv = document.getElementById("userPosts");
             var dataLimit = userPostsDiv.getAttribute("data-limit");
-
-            // Convert the data-limit value to a number if needed
             var limitNumber = parseInt(dataLimit, 10);
             showPosts(limitNumber);
         </script>
