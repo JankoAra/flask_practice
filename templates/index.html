@@ -49,10 +49,8 @@
                 const inactiveLikeImg = 'static/img/like_48.png';
                 const activeLikeImg = 'static/img/like_GS_48.png';
                 if (postLiked) {
-                    likeImg.src = 'static/like_active.png';
                     likeImg.src = activeLikeImg;
                 } else {
-                    likeImg.src = 'static/like_img.png';
                     likeImg.src = inactiveLikeImg;
                 }
                 likeImg.width = 30;
@@ -66,14 +64,12 @@
                     let num2 = parseInt(label.textContent, 10);
                     if (btn.src.includes(inactiveLikeImg)) {
                         console.log("Changing image to active");
-                        btn.src = "static/like_active.png";
                         btn.src = activeLikeImg;
                         console.log("liked post with id: ", postID);
                         num2++;
 
                     } else if (btn.src.includes(activeLikeImg)) {
                         console.log("Changing image to default");
-                        btn.src = "static/like_img.png";
                         btn.src = inactiveLikeImg;
                         num2--;
                     }
@@ -95,13 +91,21 @@
                     var delBtn = document.createElement("button");
                     delBtn.textContent = "delete post";
                     delBtn.setAttribute("data-post-id", post['id'] + "");
-                    delBtn.addEventListener("click", deletePost);
+                    delBtn.addEventListener("click", deletePostEvent);
                     newPostDiv.appendChild(delBtn);
                 }
 
                 document.getElementById("userPosts").appendChild(newPostDiv);
                 document.getElementById("userPosts").appendChild(document.createElement("hr"));
             }
+            return postsData.length;
+        }
+
+        async function deletePostEvent(event){
+            const btn = event.target;
+            const postID = btn.getAttribute("data-post-id");
+            await deletePost(username, postID);
+            window.location.reload();
         }
     </script>
 </head>
