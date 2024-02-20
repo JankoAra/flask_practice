@@ -73,14 +73,6 @@ def login():
     return redirect(url_for('index'))
 
 
-@app.route('/get_users')
-def get_users():
-    with app.app_context():
-        users = Users.query.all()
-        user_data = [{'username': user.username} for user in users]
-    return jsonify(user_data)
-
-
 @app.route('/newpoke')
 def new_poke():
     return render_template("newpoke.html")
@@ -111,19 +103,6 @@ def upload_file():
         f.save(path)
         flash("file uploaded")
     return redirect(url_for('index'))
-
-
-@app.route('/newpost', methods=['POST'])
-def uploadAPost():
-    username = session['username']
-    content = request.form['postContent']
-    print(username, content)
-    with app.app_context():
-        user = Users.query.filter_by(username=username).first()
-        post = Posts(user.id, content)
-        db.session.add(post)
-        db.session.commit()
-    return redirect(url_for("index"))
 
 
 @app.route("/logout")

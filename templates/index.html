@@ -101,7 +101,7 @@
             return postsData.length;
         }
 
-        async function deletePostEvent(event){
+        async function deletePostEvent(event) {
             const btn = event.target;
             const postID = btn.getAttribute("data-post-id");
             await deletePost(username, postID);
@@ -145,11 +145,30 @@
         <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
         <li><a href={{ url_for('form', action='uploadfile') }}>Upload a file</a></li>
     </ul>
-    <form action="/newpost" method="post">
-        <label for="postContent">Write a post</label>
-        <textarea name="postContent" id="postContent" cols="50" rows="5"></textarea>
-        <input type="submit" value="Submit">
-    </form>
+    <label for="postContent">Write a post</label>
+    <br>
+    <textarea name="postContent" id="postContent" cols="50" rows="5"></textarea>
+    <button id="submitPostBtn">Submit post</button>
+    <script>
+        async function submitPost(event) {
+            event.preventDefault();
+            const textArea = document.getElementById("postContent");
+            const content = textArea.value;
+            if (!content) {
+                console.log("Post content is empty. No post created.");
+                return false;
+            }
+
+            await createPost("{{ session.username }}", content);
+            await showPosts(document.getElementById("userPosts").getAttribute("data-limit"));
+            textArea.value = "";
+
+            return false;
+        }
+
+        const btn = document.getElementById("submitPostBtn");
+        btn.addEventListener("click", submitPost);
+    </script>
     <hr>
 
     <h2>Posts from users</h2>
@@ -178,6 +197,7 @@
                 userPostsDiv.insertAdjacentElement("afterend", msg);
             }
         }
+
     </script>
     <a href="#loadMorePostsLink" onclick="loadMorePosts()" id="loadMorePostsLink">Load more posts</a>
 
@@ -186,33 +206,25 @@
     </div>
 {% endif %}
 <script>
-    function showUsers() {
+    async function showUsers() {
         var userList = document.getElementById('userList');
 
         // If the user list is not visible, make an AJAX request to fetch the user data
         if (userList.style.display === 'none' || userList.style.display === '') {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var usersListContent = document.getElementById('usersListContent');
-                    usersListContent.innerHTML = '<p>All users</p>';  // Clear existing content
+            const userData = await getAllUsers();
+            const usersListContent = document.getElementById('usersListContent');
+            usersListContent.innerHTML = '<p>All users</p>';  // Clear existing content
 
-                    // Parse JSON response
-                    var userData = JSON.parse(xhr.responseText);
 
-                    // Display each username one per line
-                    userData.forEach(function (user) {
-                        var li = document.createElement('li');
-                        li.textContent = user.username;
-                        usersListContent.appendChild(li);
-                    });
+            // Display each username one per line
+            userData.forEach(function (user) {
+                let li = document.createElement('li');
+                li.textContent = user.username;
+                usersListContent.appendChild(li);
+            });
 
-                    // Show the user list
-                    userList.style.display = 'block';
-                }
-            };
-            xhr.open("GET", "/get_users", true);
-            xhr.send();
+            // Show the user list
+            userList.style.display = 'block';
         } else {
             // If the user list is already visible, hide it
             userList.style.display = 'none';
