@@ -56,6 +56,12 @@ def form(action):
     return "greska"
 
 
+@app.route('/session/username/<username>', methods=["POST"])
+def set_session_username(username):
+    session["username"] = username
+    return redirect(url_for("index"))
+
+
 @app.route('/login', methods=["POST"])
 def login():
     email = request.form['email']

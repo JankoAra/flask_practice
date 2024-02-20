@@ -21,10 +21,15 @@
             var registrationData = await registerUser(username, email, password);
             if (!registrationData.error) {
                 // Data is available, you can use registrationData
+                await setSessionUsername(username);
             } else {
                 // Handle the error
                 console.error('Registration error:', registrationData.error);
             }
+        }
+
+        async function setSessionUsername(username) {
+            await fetch(`/session/username/${username}`, {method: "POST"});
         }
     </script>
     {#    <script src={{ url_for('static',filename='restFunctions.js') }}></script>#}
