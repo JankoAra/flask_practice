@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify, send_from_directory
 from sqlalchemy import update
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -21,7 +21,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://janko:janko@192.168.1.200:3306/
 db.init_app(app)
 
 # config for file upload
-app.config['UPLOAD_FOLDER'] = './uploads/'
+app.config['UPLOAD_FOLDER'] = './uploads/images'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 # Maximum allowed file size for upload (in bytes)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
@@ -93,22 +94,38 @@ def get_timestamp():
     return datetime.now().strftime("%Y%m%d%H%M%S")
 
 
-@app.route('/upload-file', methods=["POST"])
-def upload_file():
+def allowed_file(filename):
+    # print(filename.rsplit('.', 1)[1].lower())
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+@app.route('/upload-img', methods=["POST"])
+def upload_img():
+    # current_directory = os.getcwd()
+    # print("Current Directory:", current_directory)
+    # print("App root path:", app.root_path)
     if request.content_length > app.config['MAX_CONTENT_LENGTH']:
         flash('File size exceeds the allowed limit')
         return redirect(url_for('index'))
     f = request.files['file']
+    if not allowed_file(f.filename):
+        flash("Unsupported file type")
+        return redirect(url_for('index'))
     if f:
         timestamp = get_timestamp()
         filename = f"{timestamp}_{secure_filename(f.filename)}"
-        uploads_folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
-        if not os.path.exists(uploads_folder):
-            os.makedirs(uploads_folder, exist_ok=True)
-        path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+        upload_folder = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+        path = os.path.join(upload_folder, secure_filename(filename))
+        # print("image path:", path)
         f.save(path)
         flash("file uploaded")
+        return render_template("display_image.html", img_filename=filename)
     return redirect(url_for('index'))
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @app.route("/logout")

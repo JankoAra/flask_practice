@@ -16,7 +16,7 @@ build/
 
 *.log
 
-uploads/
+uploads/images/*
 
 *.wsgi
 

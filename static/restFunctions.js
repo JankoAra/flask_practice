@@ -78,15 +78,7 @@ function showPosts(limit) {
                 newPostDiv.appendChild(pDate);
                 newPostDiv.appendChild(pContent);
 
-
-                // var likeButton = document.createElement("button");
-                // likeButton.setAttribute("value", "like post");
-                // likeButton.textContent = "like post";
-                // //likeButton.setAttribute("id", "likeButton");
-                // likeButton.setAttribute("data-post-id", post['id'] + "");
-
                 async function like(event) {
-                    //var btn = document.getElementById("likeButton");
                     var btn = event.target;
                     var postID = btn.getAttribute("data-post-id");
                     postID = parseInt(postID);
@@ -110,8 +102,6 @@ function showPosts(limit) {
                     label.textContent = await countLikesForPost(postID) + "";
                 }
 
-                // likeButton.addEventListener("click", like);
-                // newPostDiv.appendChild(likeButton);
 
                 var postLiked = await checkPostLiked(username, post['id']);
                 //console.log("post liked:", post['id'], postLiked);
