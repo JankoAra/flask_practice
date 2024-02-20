@@ -41,6 +41,16 @@ class Pokes(db.Model):
         self.userPoked = userPokedParam
         self.status = statusParam
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "userPoking": self.user1.to_dict(),
+            "userPoked": self.user.to_dict(),
+            "status": self.status,
+            "datetime": self.datetime
+        }
+        return d
+
 
 class Posts(db.Model):
     __tablename__ = 'posts'

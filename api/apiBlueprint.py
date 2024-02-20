@@ -1,7 +1,8 @@
 from flask import Blueprint, current_app, jsonify, request, flash
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload, aliased
 
-from dbModels import Posts, Users, Likes
+from dbModels import Posts, Users, Likes, Pokes
 from extensions import bcrypt, db
 
 api = Blueprint("api", __name__)
@@ -267,5 +268,85 @@ def get_likes_for_post(postID):
             data = [like.to_dict() for like in likes if like is not None]
             status = 200
             return jsonify(data), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+# Pokes API
+@api.route("/pokes/user/<int:userID>", methods=["GET"])
+def get_pokes_for_user_id(userID):
+    status = 500
+    try:
+        with current_app.app_context():
+            pokes = Pokes.query.filter_by(userPoked=userID, status='A').order_by(Pokes.datetime.asc()).all()
+            data = [poke.to_dict() for poke in pokes]
+            status = 200
+            return jsonify(data), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+@api.route("/pokes/username/<username>", methods=["GET"])
+def get_pokes_for_username(username):
+    status = 500
+    try:
+        with current_app.app_context():
+            user_poked_alias = aliased(Users)
+            user_poking_alias = aliased(Users)
+
+            pokes = (
+                Pokes.query
+                .join(user_poked_alias, user_poked_alias.id == Pokes.userPoked)  # Join for Pokes.user
+                .join(user_poking_alias, user_poking_alias.id == Pokes.userPoking)  # Join for Pokes.user1
+                .filter(user_poked_alias.username == username, Pokes.status == 'A')
+                .order_by(Pokes.datetime.asc())
+                .all()
+            )
+            data = [poke.to_dict() for poke in pokes]
+            status = 200
+            return jsonify(data), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+@api.route("/pokes/new", methods=["POST"])
+def create_poke():
+    status = 500
+    try:
+        data = request.get_json()
+        username_poked = data.get("usernamePoked")
+        username_poking = data.get("usernamePoking")
+
+        with current_app.app_context():
+            user_poking = Users.query.filter_by(username=username_poking).first()
+            if not user_poking:
+                status = 404
+                raise Exception("User that pokes doesn't exist!")
+            user_poked = Users.query.filter_by(username=username_poked).first()
+            if not user_poked:
+                status = 404
+                raise Exception("User getting poked doesn't exist!")
+            poke = Pokes(user_poking.id, user_poked.id, 'A')
+            db.session.add(poke)
+            db.session.commit()
+            status = 201
+            return jsonify({"message": "Poke created"}), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+@api.route("/pokes/read/<int:pokeID>", methods=["PUT"])
+def read_poke(pokeID):
+    status = 500
+    try:
+        with current_app.app_context():
+            poke = Pokes.query.get(pokeID)
+            if not poke:
+                status = 404
+                raise Exception("Poke doesn't exist!")
+            poke.status = "N"
+            db.session.commit()
+            status = 200
+            return jsonify({"message": "Poke status set to N"}), status
     except Exception as e:
         return jsonify({'message': str(e)}), status

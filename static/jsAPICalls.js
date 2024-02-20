@@ -201,3 +201,75 @@ async function getLikesForPost(postID) {
         return {error: error.message};
     }
 }
+
+async function getPokesForUserID(userID) {
+    try {
+        const response = await fetch(`/api/pokes/user/${userID}`);
+        const data = handleErrors(response);
+        if (data.error) {
+            console.error('Error getting pokes for user:', data.error);
+        } else {
+            console.log(`Pokes for user ${userID}:`, data);
+        }
+        return data;
+    } catch (error) {
+        console.error('Error getting pokes for user:', error.message);
+        return {error: error.message};
+    }
+}
+
+async function getPokesForUsername(username) {
+    try {
+        const response = await fetch(`/api/pokes/username/${username}`);
+        const data = handleErrors(response);
+        if (data.error) {
+            console.error('Error getting pokes for username:', data.error);
+        } else {
+            console.log(`Pokes for username ${username}:`, data);
+        }
+        return data;
+    } catch (error) {
+        console.error('Error getting pokes for username:', error.message);
+        return {error: error.message};
+    }
+}
+
+async function createPoke(usernamePoking, usernamePoked) {
+    try {
+        const response = await fetch('/api/pokes/new', {
+            method: 'POST', headers: {
+                'Content-Type': 'application/json',
+            }, body: JSON.stringify({
+                usernamePoking: usernamePoking, usernamePoked: usernamePoked,
+            }),
+        });
+        const data = handleErrors(response);
+        if (data.error) {
+            console.error('Error creating poke:', data.error);
+        } else {
+            console.log('Poke created:', data);
+        }
+        return data;
+    } catch (error) {
+        console.error('Error creating poke:', error.message);
+        return {error: error.message};
+    }
+}
+
+async function readPoke(pokeID) {
+    try {
+        const response = await fetch('/api/pokes/read/' + pokeID, {
+            method: 'PUT'
+        });
+        const data = handleErrors(response);
+        if (data.error) {
+            console.error('Error reading poke:', data.error);
+        } else {
+            console.log('Poke status changed:', data);
+        }
+        return data;
+    } catch (error) {
+        console.error('Error reading poke:', error.message);
+        return {error: error.message};
+    }
+}

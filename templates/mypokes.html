@@ -3,14 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <title>My pokes</title>
+    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
 </head>
 <body>
 <a href={{ url_for('index') }}>Back to index</a>
-{% for poke in pokes %}
-    <p>Poked by: {{ poke.user1.username }} on {{ poke.time }}
-        <a href={{ url_for('create_poke', usernamePoked=poke.user1.username, returnpoke=True, poke=poke.id) }}>Poke
-            back</a>
-        <a href={{ url_for('ignore_poke', pokeID=poke.id) }}>Ignore poke</a></p><br>
-{% endfor %}
+<div id="pokesForUser"></div>
+
+<script>
+    async function fetchPokes() {
+        const pokes = await getPokesForUsername("{{ session.username }}");
+        const pokesDiv = document.getElementById("pokesForUser");
+        for (let i = 0; i < pokes.length; i++) {
+            const poke = pokes[i];
+            const newP = document.createElement("p");
+            newP.textContent = "Poked by: " + poke.userPoking.username + " on " + poke.datetime;
+
+            const linkPokeBack = document.createElement("a");
+            linkPokeBack.setAttribute("data-username-poking", poke.userPoking.username);
+            linkPokeBack.setAttribute("data-pokeID", poke.id);
+            linkPokeBack.href = "#pokesForUser";
+            linkPokeBack.addEventListener("click", pokeBack);
+            linkPokeBack.textContent = "Poke back";
+
+            const linkIgnorePoke = document.createElement("a");
+            linkIgnorePoke.setAttribute("data-pokeID", poke.id);
+            linkIgnorePoke.href = "#pokesForUser";
+            linkIgnorePoke.addEventListener("click", ignorePoke);
+            linkIgnorePoke.textContent = "Ignore poke";
+
+            newP.appendChild(document.createTextNode(' '));
+            newP.appendChild(linkPokeBack);
+            newP.appendChild(document.createTextNode(' '));
+            newP.appendChild(linkIgnorePoke);
+
+            pokesDiv.appendChild(newP);
+        }
+    }
+
+    async function pokeBack(event) {
+        const link = event.target;
+        const usernamePoking = link.getAttribute("data-username-poking");
+        const pokeID = link.getAttribute("data-pokeID");
+        await readPoke(pokeID);
+        await createPoke("{{ session.username }}", usernamePoking);
+        link.parentElement.remove();
+    }
+
+    async function ignorePoke(event) {
+        const link = event.target;
+        const pokeID = link.getAttribute("data-pokeID");
+        await readPoke(pokeID);
+        link.parentElement.remove();
+    }
+
+    fetchPokes();
+</script>
 </body>
 </html>

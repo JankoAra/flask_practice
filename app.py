@@ -23,7 +23,7 @@ db.init_app(app)
 # config for file upload
 app.config['UPLOAD_FOLDER'] = './uploads/'
 # Maximum allowed file size for upload (in bytes)
-app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
 # from flask_mail import Mail
 # config for mail sending using flask_mail
@@ -56,30 +56,6 @@ def form(action):
     return "greska"
 
 
-# @app.route('/register', methods=["POST"])
-# def register():
-#     email = request.form['email']
-#     password = request.form['password']
-#     username = request.form['username']
-#     with app.app_context():
-#         if email and password and username:
-#             user = Users.query.filter_by(email=email).first()
-#             if user is not None:
-#                 flash("Email is taken")
-#                 return redirect(url_for('index'))
-#             user = Users.query.filter_by(username=username).first()
-#             if user is not None:
-#                 flash("Username is taken")
-#                 return redirect(url_for('index'))
-#             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-#             user = Users(emailParam=email, passwordParam=hashed_password, usernameParam=username)
-#             db.session.add(user)
-#             db.session.commit()
-#             flash("User created")
-#             session['username'] = username
-#     return redirect(url_for('index'))
-
-
 @app.route('/login', methods=["POST"])
 def login():
     email = request.form['email']
@@ -107,50 +83,12 @@ def get_users():
 
 @app.route('/newpoke')
 def new_poke():
-    with app.app_context():
-        users = Users.query.filter(Users.username != session['username']).all()
-    return render_template("newpoke.html", users=users)
-
-
-@app.route('/makepoke/<usernamePoked>')
-def create_poke(usernamePoked):
-    returnPoke = bool(request.args.get('returnpoke'))
-    pokeID = request.args.get('poke')
-    print(returnPoke, pokeID)
-    pokeID = int(pokeID) if pokeID is not None else None
-    with app.app_context():
-        if returnPoke and pokeID:
-            stmt = update(Pokes).where(Pokes.id == pokeID).values(status='N')
-            db.session.execute(stmt)
-        userPoked = Users.query.filter(Users.username == usernamePoked).first()
-        userPoking = Users.query.filter(Users.username == session['username']).first()
-        poke = Pokes(userPoking.id, userPoked.id, 'A')
-        db.session.add(poke)
-        db.session.commit()
-    if returnPoke:
-        return redirect(url_for('my_pokes'))
-    return redirect(url_for('index'))
+    return render_template("newpoke.html")
 
 
 @app.route('/mypokes')
 def my_pokes():
-    with app.app_context():
-        user = Users.query.filter(Users.username == session['username']).first()
-        # using joinedload to eagerly load user1 before closing dbSession
-        pokes = Pokes.query.options(joinedload(Pokes.user1)).filter(Pokes.userPoked == user.id,
-                                                                    Pokes.status == 'A').all()
-    return render_template("mypokes.html", pokes=pokes)
-
-
-@app.route('/ignorepoke/<int:pokeID>')
-def ignore_poke(pokeID):
-    with app.app_context():
-        print(pokeID)
-        if pokeID:
-            stmt = update(Pokes).where(Pokes.id == pokeID).values(status='N')
-            db.session.execute(stmt)
-            db.session.commit()
-    return redirect(url_for('my_pokes'))
+    return render_template("mypokes.html")
 
 
 def get_timestamp():
