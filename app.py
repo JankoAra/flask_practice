@@ -1,13 +1,11 @@
 import os
 from datetime import datetime
 
-from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify, send_from_directory
-from sqlalchemy import update
-from sqlalchemy.orm import joinedload
+from flask import Flask, request, render_template, redirect, url_for, session, flash, send_from_directory
 from werkzeug.utils import secure_filename
 
 from api.apiBlueprint import api
-from dbModels import Users, Pokes, Posts
+from dbModels import Users
 from exampleBlueprint.examples import bp
 from extensions import bcrypt, db, cors
 
@@ -128,17 +126,17 @@ def upload_img():
                     os.remove(path)
             user.profileImagePath = filename
             db.session.commit()
-        return render_template("display_image.html", img_filename=filename)
+        # return render_template("display_image.html", img_filename=filename)
     return redirect(url_for('index'))
 
 
-@app.route('/uploads/profile-img')
-def uploaded_file():
+@app.route('/uploads/profile-img/<username>')
+def uploaded_file(username):
     with app.app_context():
-        user = Users.query.filter_by(username=session["username"]).first()
+        user = Users.query.filter_by(username=username).first()
         if user and user.profileImagePath:
             filename = user.profileImagePath
-            path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'],filename)
+            path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], filename)
             if not os.path.exists(path):
                 print("Image doesn't exist in the database")
                 user.profileImagePath = None

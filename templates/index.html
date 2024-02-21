@@ -26,6 +26,12 @@
             for (const postsDataKey in postsData) {
                 const post = postsData[postsDataKey];
                 var newPostDiv = document.createElement("div");
+                var profileImg = document.createElement("img");
+                profileImg.src = '/uploads/profile-img/'+post.author.username;
+                const imgSize = 50;
+                profileImg.width = imgSize;
+                profileImg.height = imgSize;
+                newPostDiv.appendChild(profileImg);
                 var pUsername = document.createElement("p");
                 pUsername.textContent = post.author.username;
                 var pDate = document.createElement("p");
@@ -122,7 +128,7 @@
 {% endwith %}
 {% if session.username %}
     <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer">
-        <img src="{{ url_for("uploaded_file") }}"
+        <img src="{{ url_for("uploaded_file", username=session.username) }}"
              alt="profileImage" width="200" height="200"
              style="border: 2px solid black;"></a>
     <h1>Logged in as {{ session.username }}</h1>

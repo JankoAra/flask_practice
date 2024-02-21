@@ -16,6 +16,6 @@
 {% endwith %}
 <a href="/">back to index</a>
 <br>
-<img src="{{ url_for('uploaded_file') }}" alt="{{ img_filename }}">
+<img src="{{ url_for('uploaded_file', username=session.username) }}" alt="{{ img_filename }}">
 </body>
 </html>
