@@ -117,15 +117,37 @@ def upload_img():
         upload_folder = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
         path = os.path.join(upload_folder, secure_filename(filename))
         # print("image path:", path)
+        # print("filename:", filename)
         f.save(path)
         flash("file uploaded")
+        with app.app_context():
+            user = Users.query.filter_by(username=session["username"]).first()
+            if user and user.profileImagePath:
+                path = os.path.join(upload_folder, user.profileImagePath)
+                if os.path.exists(path):
+                    os.remove(path)
+            user.profileImagePath = filename
+            db.session.commit()
         return render_template("display_image.html", img_filename=filename)
     return redirect(url_for('index'))
 
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/uploads/profile-img')
+def uploaded_file():
+    with app.app_context():
+        user = Users.query.filter_by(username=session["username"]).first()
+        if user and user.profileImagePath:
+            filename = user.profileImagePath
+            path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'],filename)
+            if not os.path.exists(path):
+                print("Image doesn't exist in the database")
+                user.profileImagePath = None
+                db.session.commit()
+                filename = 'empty_profile_image.png'
+                return send_from_directory('static/img', filename)
+            return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        filename = 'empty_profile_image.png'
+        return send_from_directory('static/img', filename)
 
 
 @app.route("/logout")

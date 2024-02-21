@@ -121,6 +121,10 @@
     {% endif %}
 {% endwith %}
 {% if session.username %}
+    <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer">
+        <img src="{{ url_for("uploaded_file") }}"
+             alt="profileImage" width="200" height="200"
+             style="border: 2px solid black;"></a>
     <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
 <ul>
@@ -144,7 +148,7 @@
     <ul>
         <li><a href={{ url_for('new_poke') }}>Poke someone</a></li>
         <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
-        <li><a href={{ url_for('form', action='uploadfile') }}>Upload a file</a></li>
+        <li><a href={{ url_for('form', action='uploadfile') }}>Upload a profile picture</a></li>
     </ul>
     <label for="postContent">Write a post</label>
     <br>
