@@ -21,3 +21,4 @@ uploads/images/*
 *.wsgi
 
 *.conf
+/flask_image_server.py

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import requests
 
 from flask import Flask, request, render_template, redirect, url_for, session, flash, send_from_directory
 from werkzeug.utils import secure_filename
@@ -117,6 +118,14 @@ def upload_img():
         # print("image path:", path)
         # print("filename:", filename)
         f.save(path)
+
+        url = 'http://192.168.1.200:5500/upload'
+
+        files = {'file': open(path, 'rb')}  # Replace 'your_image.jpg' with the path to the image you want to upload
+
+        response = requests.post(url, files=files)
+
+        print(response.text)
         flash("file uploaded")
         with app.app_context():
             user = Users.query.filter_by(username=session["username"]).first()
@@ -159,3 +168,5 @@ if __name__ == '__main__':
     # with app.app_context():
     #     db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
+    while 1:
+        pass

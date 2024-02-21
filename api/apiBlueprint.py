@@ -1,3 +1,6 @@
+from base64 import b64encode
+from io import BytesIO
+
 from flask import Blueprint, current_app, jsonify, request, flash
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload, aliased
@@ -348,5 +351,89 @@ def read_poke(pokeID):
             db.session.commit()
             status = 200
             return jsonify({"message": "Poke status set to N"}), status
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+from PIL import Image, ExifTags
+
+
+def resize_image(image_data, size, filename):
+    # Open the image using Pillow
+    image = Image.open(BytesIO(image_data))
+
+    # Determine the format from the file extension
+    file_extension = image.format
+
+    # Handle orientation from EXIF data
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = dict(image._getexif().items())
+
+        if exif[orientation] == 3:
+            image = image.rotate(180, expand=True)
+        elif exif[orientation] == 6:
+            image = image.rotate(270, expand=True)
+        elif exif[orientation] == 8:
+            image = image.rotate(90, expand=True)
+
+    except (AttributeError, KeyError, IndexError):
+        # No EXIF data, or the image doesn't have orientation information
+        print("no exif data")
+        pass
+
+    # Resize the image
+    resized_image = image.resize(size)
+
+    try:
+        # Convert the resized image back to binary data
+        buffered = BytesIO()
+
+        resized_image.save(buffered, format=file_extension)  # You can adjust the format as needed
+
+    except Exception as e:
+        print(str(e))
+        return None
+    resized_image_data = buffered.getvalue()
+
+    return resized_image_data
+
+
+@api.route('/users/images/upload', methods=['POST'])
+def upload_image():
+    status = 500
+    try:
+        username = request.form['username']
+        user = Users.query.filter_by(username=username).first()
+
+        if 'image' in request.files:
+            image = request.files['image']
+            # Resize the image (adjust the size as needed)
+            resized_image = resize_image(image.read(), (300, 300), image.filename)
+
+            # Save the resized image to the user's profile
+            user.image = resized_image
+            db.session.commit()
+            return jsonify({'message': 'Image uploaded successfully'}), 200
+        else:
+            return jsonify({'error': 'No image provided'}), 400
+    except Exception as e:
+        return jsonify({'message': str(e)}), status
+
+
+@api.route('/users/images/<username>', methods=['GET'])
+def get_image(username):
+    status = 500
+    try:
+        user = Users.query.filter_by(username=username).first()
+
+        if user and user.image:
+            # Encode the binary image data as base64
+            image_data_base64 = b64encode(user.image).decode('utf-8')
+            return jsonify({'image': image_data_base64})
+        else:
+            return jsonify({'error': 'Image not found'}), 404
     except Exception as e:
         return jsonify({'message': str(e)}), status

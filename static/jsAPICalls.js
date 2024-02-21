@@ -273,3 +273,21 @@ async function readPoke(pokeID) {
         return {error: error.message};
     }
 }
+
+async function getImage(username, imageContainer, imgSize) {
+    await fetch(`/api/users/images/${username}`)
+        .then(response => response.json())
+        .then(data => {
+            //const imageContainer = document.getElementById('ic' + postID);
+            if (data.error) {
+                //imageContainer.innerHTML = `<p>${data.error}</p>`;
+                imageContainer.innerHTML = `<img src="/static/img/empty_profile_image.png" alt="User Image" width=${imgSize} height=${imgSize}>`;
+            } else {
+                const imageData = data.image;
+                const imageUrl = `data:image/png;base64,${imageData}`;
+
+                imageContainer.innerHTML = `<img src="${imageUrl}" alt="User Image" width=${imgSize} height=${imgSize}>`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}

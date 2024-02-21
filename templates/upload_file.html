@@ -2,12 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Upload a file</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
 </head>
 <body>
-<form action="{{ url_for('upload_img') }}" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".png, .jpg, .jpeg, .gif" required>
-    <input type="submit" value="Upload image">
+<form id="uploadForm">
+    <label for="image">Choose an image:</label>
+    <input type="file" id="image" name="image" accept="image/*" required>
+    <br>
+    <button type="submit">Upload Image</button>
 </form>
+
+<div id="imageContainer"></div>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const username = "{{ session.username }}";
+        const image = document.getElementById('image').files[0];
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('image', image);
+
+        fetch('/api/users/images/upload', {
+            method: 'POST',
+            body: formData,
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+        window.location = "/";
+    });
+
+    // Call getImage function with a specific username (replace 'exampleUser' with an actual username)
+    await getImage("{{ session.username }}", document.getElementById("imageContainer"), 300);
+
+</script>
 </body>
 </html>

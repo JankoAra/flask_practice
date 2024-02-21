@@ -22,16 +22,21 @@
             while (userPostsDiv.firstChild) {
                 userPostsDiv.removeChild(userPostsDiv.firstChild);
             }
+            await getImage("{{ session.username }}", document.getElementById("mainImage"), 200);
             var postsData = await getAllPosts(limit);
             for (const postsDataKey in postsData) {
                 const post = postsData[postsDataKey];
                 var newPostDiv = document.createElement("div");
+                const imageContainer = document.createElement("div");
+                imageContainer.setAttribute("id", "ic"+post.id);
                 var profileImg = document.createElement("img");
-                profileImg.src = '/uploads/profile-img/'+post.author.username;
+                //profileImg.src = '/uploads/profile-img/'+post.author.username;
+                await getImage(post.author.username, imageContainer, 50);
                 const imgSize = 50;
                 profileImg.width = imgSize;
                 profileImg.height = imgSize;
-                newPostDiv.appendChild(profileImg);
+                //newPostDiv.appendChild(profileImg);
+                newPostDiv.appendChild(imageContainer);
                 var pUsername = document.createElement("p");
                 pUsername.textContent = post.author.username;
                 var pDate = document.createElement("p");
@@ -127,10 +132,11 @@
     {% endif %}
 {% endwith %}
 {% if session.username %}
-    <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer">
-        <img src="{{ url_for("uploaded_file", username=session.username) }}"
-             alt="profileImage" width="200" height="200"
-             style="border: 2px solid black;"></a>
+    <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer" id="mainImage">
+{#        <img src="{{ url_for("uploaded_file", username=session.username) }}"#}
+{#             alt="profileImage" width="200" height="200"#}
+{#             style="border: 2px solid black;">#}
+    </a>
     <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
 <ul>

@@ -9,6 +9,7 @@ class Users(db.Model):
     password = db.Column(db.String(255), nullable=False)
     username = db.Column(db.String(45), nullable=False, unique=True)
     profileImagePath = db.Column(db.Text)
+    image = db.Column(db.LargeBinary(length=(2**32)-1))
 
     posts = db.relationship('Posts', backref='author', lazy=True)
 
