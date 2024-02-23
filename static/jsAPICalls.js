@@ -82,9 +82,10 @@ async function getAllUsers() {
 }
 
 // Function to get all posts
-async function getAllPosts(limit) {
+async function getAllPosts(limit, offset) {
     try {
-        const response = await fetch('/api/posts/all?limit=' + limit);
+        console.log(offset);
+        const response = await fetch('/api/posts/all?limit=' + limit + "&offset=" + offset);
         const data = handleErrors(response);
         if (data.error) {
             console.error('Error getting all posts:', data.error);
@@ -274,34 +275,64 @@ async function readPoke(pokeID) {
     }
 }
 
-async function getImage(username, imageContainer, imgSize) {
-    await fetch(`/api/users/images/${username}`)
-        .then(response => response.json())
-        .then(data => {
-            while(imageContainer.firstChild){
-                imageContainer.removeChild(imageContainer.firstChild);
-            }
-            if (data.error) {
-                //imageContainer.innerHTML = `<p>${data.error}</p>`;
-                const imgElem = document.createElement("img");
-                imgElem.src = "/static/img/empty_profile_image.png";
-                imgElem.alt = "User image";
-                imgElem.width = imgSize;
-                imgElem.height = imgSize;
-                imgElem.style.objectFit = "contain";
-                imageContainer.appendChild(imgElem);
-            } else {
-                const imageData = data.image;
-                const imageUrl = `data:image/png;base64,${imageData}`;
+// Global image cache object
+var imageCache = {};
 
-                const imgElem = document.createElement("img");
-                imgElem.src = imageUrl;
-                imgElem.alt = "User image";
-                imgElem.width = imgSize;
-                imgElem.height = imgSize;
-                imgElem.style.objectFit = "contain";
-                imageContainer.appendChild(imgElem);
-            }
-        })
-        .catch(error => console.error('Error:', error));
+async function getImage(username, imageContainer, imgSize) {
+    var imageUrl;
+    if (imageCache[username]) {
+        //console.log("ima sacuvano za "+username);
+        imageUrl = imageCache[username];
+    } else {
+        //console.log("nema sacuvano za "+username);
+        imageUrl = await getImageUrl(username);
+    }
+    if (imageUrl) {
+        const imgElem = createImageElement(imageUrl, imgSize);
+        imageContainer.innerHTML = '';
+        imageContainer.appendChild(imgElem);
+
+        // Cache the image for future use
+        imageCache[username] = imgElem.src;
+    } else {
+        // Handle error or display a default image
+        const imgElem = createDefaultImage(imgSize);
+        imageContainer.innerHTML = '';
+        imageContainer.appendChild(imgElem);
+
+        // Cache the default image for future use
+        imageCache[username] = imgElem.src;
+    }
+    //console.log(imageCache);
+}
+
+async function getImageUrl(username) {
+    const response = await fetch(`/api/users/images/${username}`);
+    const data = await response.json();
+
+    if (data.error) {
+        return null;
+    } else {
+        return `data:image/png;base64,${data.image}`;
+    }
+}
+
+function createDefaultImage(imgSize) {
+    const imgElem = document.createElement("img");
+    imgElem.src = "/static/img/empty_profile_image.png";
+    imgElem.alt = "User image";
+    imgElem.width = imgSize;
+    imgElem.height = imgSize;
+    imgElem.style.objectFit = "contain";
+    return imgElem;
+}
+
+function createImageElement(imageUrl, imgSize) {
+    const imgElem = document.createElement("img");
+    imgElem.src = imageUrl;
+    imgElem.alt = "User image";
+    imgElem.width = imgSize;
+    imgElem.height = imgSize;
+    imgElem.style.objectFit = "contain";
+    return imgElem;
 }

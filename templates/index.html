@@ -17,20 +17,17 @@
             username = usr;
         }
 
-        async function showPosts(limit) {
+        async function showPosts(limit, offset) {
             var userPostsDiv = document.getElementById('userPosts');
-            while (userPostsDiv.firstChild) {
-                userPostsDiv.removeChild(userPostsDiv.firstChild);
-            }
-            await getImage("{{ session.username }}", document.getElementById("mainImage"), 200);
-            var postsData = await getAllPosts(limit);
+            //userPostsDiv.innerHTML = "";
+
+            var postsData = await getAllPosts(limit, offset);
             for (const postsDataKey in postsData) {
                 const post = postsData[postsDataKey];
                 var newPostDiv = document.createElement("div");
+                newPostDiv.setAttribute("id", 'div-post-id-' + post.id);
                 const imageContainer = document.createElement("div");
-                imageContainer.setAttribute("id", "ic"+post.id);
                 var profileImg = document.createElement("img");
-                //profileImg.src = '/uploads/profile-img/'+post.author.username;
                 await getImage(post.author.username, imageContainer, 50);
                 const imgSize = 50;
                 profileImg.width = imgSize;
@@ -87,8 +84,6 @@
                     }
                     await toggleLike(username, postID);
                     label.textContent = num2.toString();
-                    {#let num = await getLikesForPost(post.id);#}
-                    {#label.textContent = num.length;#}
                 }
 
                 likeImg.addEventListener("click", like);
@@ -117,7 +112,9 @@
             const btn = event.target;
             const postID = btn.getAttribute("data-post-id");
             await deletePost(username, postID);
-            window.location.reload();
+            const div = document.getElementById('div-post-id-'+postID);
+            div.innerHTML="<p>Post deleted</p>";
+            //window.location.reload();
         }
     </script>
 </head>
@@ -132,11 +129,12 @@
     {% endif %}
 {% endwith %}
 {% if session.username %}
-    <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer" id="mainImage">
-{#        <img src="{{ url_for("uploaded_file", username=session.username) }}"#}
-{#             alt="profileImage" width="200" height="200"#}
-{#             style="border: 2px solid black;">#}
+    <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer"
+       id="mainImage">
     </a>
+    <script>
+        getImage("{{ session.username }}", document.getElementById("mainImage"), 200);
+    </script>
     <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
 <ul>
@@ -177,10 +175,14 @@
             }
 
             await createPost("{{ session.username }}", content);
-            await showPosts(document.getElementById("userPosts").getAttribute("data-limit"));
+            const userPostsDiv = document.getElementById("userPosts");
+            const dataLimit = parseInt(userPostsDiv.getAttribute("data-limit"), 10);
+            userPostsDiv.setAttribute('data-limit', dataLimit + 1);
+            userPostsDiv.innerHTML = "";
+            await showPosts(dataLimit + 1, 0);
             textArea.value = "";
 
-            return false;
+            //window.location.reload();
         }
 
         const btn = document.getElementById("submitPostBtn");
@@ -194,7 +196,7 @@
             var userPostsDiv = document.getElementById("userPosts");
             var dataLimit = userPostsDiv.getAttribute("data-limit");
             var limitNumber = parseInt(dataLimit, 10);
-            showPosts(limitNumber);
+            showPosts(limitNumber, 0);
         </script>
     </div>
     <script>
@@ -205,9 +207,9 @@
             const newPostsToLoad = 8;
             var newLimit = currentLimit + newPostsToLoad;
             userPostsDiv.setAttribute('data-limit', newLimit.toString());
-            var postsReturned = await showPosts(newLimit);
+            var postsReturned = await showPosts(newPostsToLoad, currentLimit);
             //console.log(newLimit, postsReturned);
-            if (postsReturned && postsReturned < newLimit) {
+            if (postsReturned < newPostsToLoad) {
                 document.getElementById("loadMorePostsLink").remove();
                 var msg = document.createElement("p");
                 msg.textContent = "All posts loaded!";
@@ -217,10 +219,8 @@
 
     </script>
     <a href="#loadMorePostsLink" onclick="loadMorePosts()" id="loadMorePostsLink">Load more posts</a>
+    <div style="height: 50px;"></div>
 
-    <div style="background-color: blue; height: 50px;margin-top: 20px;">
-
-    </div>
 {% endif %}
 <script>
     async function showUsers() {

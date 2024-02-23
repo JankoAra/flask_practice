@@ -125,9 +125,12 @@ def get_all_posts():
     try:
         with current_app.app_context():
             limit = request.args.get("limit")
-            if limit is not None and limit != "undefined":
+            offset = request.args.get("offset")
+            print(offset)
+            if limit is not None and limit != "undefined" and offset is not None and offset != "undefined":
                 limit = int(limit)
-                posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).limit(limit).all()
+                offset = int(offset)
+                posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).limit(limit).offset(offset).all()
             else:
                 posts = Posts.query.order_by(Posts.datetime.desc(), Posts.id.desc()).all()
             post_data = [post.to_dict() for post in posts]
