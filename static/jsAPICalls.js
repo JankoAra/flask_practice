@@ -281,12 +281,27 @@ async function getImage(username, imageContainer, imgSize) {
             //const imageContainer = document.getElementById('ic' + postID);
             if (data.error) {
                 //imageContainer.innerHTML = `<p>${data.error}</p>`;
-                imageContainer.innerHTML = `<img src="/static/img/empty_profile_image.png" alt="User Image" width=${imgSize} height=${imgSize}>`;
+                const imgElem = document.createElement("img");
+                imgElem.src = "/static/img/empty_profile_image.png";
+                imgElem.alt = "User image";
+                imgElem.width = imgSize;
+                imgElem.height = imgSize;
+                imgElem.style.objectFit = "contain";
+                imageContainer.appendChild(imgElem);
+                //imageContainer.innerHTML = `<img src="/static/img/empty_profile_image.png" alt="User Image" width=${imgSize} height=${imgSize}>`;
             } else {
                 const imageData = data.image;
                 const imageUrl = `data:image/png;base64,${imageData}`;
 
-                imageContainer.innerHTML = `<img src="${imageUrl}" alt="User Image" width=${imgSize} height=${imgSize}>`;
+                const imgElem = document.createElement("img");
+                imgElem.src = imageUrl;
+                imgElem.alt = "User image";
+                imgElem.width = imgSize;
+                imgElem.height = imgSize;
+                imgElem.style.objectFit = "contain";
+                imageContainer.appendChild(imgElem);
+
+                //imageContainer.innerHTML = `<img src="${imageUrl}" alt="User Image" width=${imgSize} height=${imgSize}>`;
             }
         })
         .catch(error => console.error('Error:', error));

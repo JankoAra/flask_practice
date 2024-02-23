@@ -40,7 +40,7 @@
                 var pUsername = document.createElement("p");
                 pUsername.textContent = post.author.username;
                 var pDate = document.createElement("p");
-                pDate.textContent = post.dateTime;
+                pDate.textContent = post.datetime;
                 var pContent = document.createElement("p");
                 pContent.innerHTML = post.content.replaceAll("\r\n", "<br>");
                 newPostDiv.appendChild(pUsername);

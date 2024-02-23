@@ -17,7 +17,7 @@
 <div id="imageContainer"></div>
 
 <script>
-    document.getElementById('uploadForm').addEventListener('submit', function (event) {
+    document.getElementById('uploadForm').addEventListener('submit', async function (event) {
         event.preventDefault();
 
         const username = "{{ session.username }}";
@@ -27,7 +27,7 @@
         formData.append('username', username);
         formData.append('image', image);
 
-        fetch('/api/users/images/upload', {
+        await fetch('/api/users/images/upload', {
             method: 'POST',
             body: formData,
         })
@@ -38,7 +38,7 @@
     });
 
     // Call getImage function with a specific username (replace 'exampleUser' with an actual username)
-    await getImage("{{ session.username }}", document.getElementById("imageContainer"), 300);
+    getImage("{{ session.username }}", document.getElementById("imageContainer"), 300);
 
 </script>
 </body>

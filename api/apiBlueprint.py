@@ -358,7 +358,7 @@ def read_poke(pokeID):
 from PIL import Image, ExifTags
 
 
-def resize_image(image_data, size, filename):
+def resize_image(image_data, max_size):
     # Open the image using Pillow
     image = Image.open(BytesIO(image_data))
 
@@ -384,8 +384,20 @@ def resize_image(image_data, size, filename):
         print("no exif data")
         pass
 
+    # Calculate the new size while preserving the aspect ratio
+    original_width, original_height = image.size
+    aspect_ratio = original_width / original_height
+
+    # Determine the new width and height
+    if aspect_ratio > 1:  # Landscape orientation
+        new_width = min(original_width, max_size)
+        new_height = int(new_width / aspect_ratio)
+    else:  # Portrait or square orientation
+        new_height = min(original_height, max_size)
+        new_width = int(new_height * aspect_ratio)
+
     # Resize the image
-    resized_image = image.resize(size)
+    resized_image = image.resize((new_width, new_height))
 
     try:
         # Convert the resized image back to binary data
@@ -411,7 +423,7 @@ def upload_image():
         if 'image' in request.files:
             image = request.files['image']
             # Resize the image (adjust the size as needed)
-            resized_image = resize_image(image.read(), (300, 300), image.filename)
+            resized_image = resize_image(image.read(), 300)
 
             # Save the resized image to the user's profile
             user.image = resized_image
