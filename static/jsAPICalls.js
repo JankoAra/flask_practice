@@ -278,7 +278,9 @@ async function getImage(username, imageContainer, imgSize) {
     await fetch(`/api/users/images/${username}`)
         .then(response => response.json())
         .then(data => {
-            //const imageContainer = document.getElementById('ic' + postID);
+            while(imageContainer.firstChild){
+                imageContainer.removeChild(imageContainer.firstChild);
+            }
             if (data.error) {
                 //imageContainer.innerHTML = `<p>${data.error}</p>`;
                 const imgElem = document.createElement("img");
@@ -288,7 +290,6 @@ async function getImage(username, imageContainer, imgSize) {
                 imgElem.height = imgSize;
                 imgElem.style.objectFit = "contain";
                 imageContainer.appendChild(imgElem);
-                //imageContainer.innerHTML = `<img src="/static/img/empty_profile_image.png" alt="User Image" width=${imgSize} height=${imgSize}>`;
             } else {
                 const imageData = data.image;
                 const imageUrl = `data:image/png;base64,${imageData}`;
@@ -300,8 +301,6 @@ async function getImage(username, imageContainer, imgSize) {
                 imgElem.height = imgSize;
                 imgElem.style.objectFit = "contain";
                 imageContainer.appendChild(imgElem);
-
-                //imageContainer.innerHTML = `<img src="${imageUrl}" alt="User Image" width=${imgSize} height=${imgSize}>`;
             }
         })
         .catch(error => console.error('Error:', error));
