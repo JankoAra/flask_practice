@@ -9,114 +9,7 @@
             display: none;
         }
     </style>
-    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
-    <script>
-        var username;
-
-        function setUsername(usr) {
-            username = usr;
-        }
-
-        async function showPosts(limit, offset) {
-            var userPostsDiv = document.getElementById('userPosts');
-            //userPostsDiv.innerHTML = "";
-
-            var postsData = await getAllPosts(limit, offset);
-            for (const postsDataKey in postsData) {
-                const post = postsData[postsDataKey];
-                var newPostDiv = document.createElement("div");
-                newPostDiv.setAttribute("id", 'div-post-id-' + post.id);
-                const imageContainer = document.createElement("div");
-                var profileImg = document.createElement("img");
-                await getImage(post.author.username, imageContainer, 50);
-                const imgSize = 50;
-                profileImg.width = imgSize;
-                profileImg.height = imgSize;
-                //newPostDiv.appendChild(profileImg);
-                newPostDiv.appendChild(imageContainer);
-                var pUsername = document.createElement("p");
-                pUsername.textContent = post.author.username;
-                var pDate = document.createElement("p");
-                pDate.textContent = post.datetime;
-                var pContent = document.createElement("p");
-                pContent.innerHTML = post.content.replaceAll("\r\n", "<br>");
-                newPostDiv.appendChild(pUsername);
-                newPostDiv.appendChild(pDate);
-                newPostDiv.appendChild(pContent);
-                var likeImg = document.createElement("img");
-                likeImg.setAttribute("data-post-id", post.id);
-                var postLiked = false;
-                if (post.numOfLikes > 0) {
-                    for (var i = 0; i < post.likes.length; i++) {
-                        var l = post.likes[i];
-                        if (l.user.username === username) {
-                            postLiked = true;
-                            break;
-                        }
-                    }
-                }
-                const inactiveLikeImg = 'static/img/like_48.png';
-                const activeLikeImg = 'static/img/like_GS_48.png';
-                if (postLiked) {
-                    likeImg.src = activeLikeImg;
-                } else {
-                    likeImg.src = inactiveLikeImg;
-                }
-                likeImg.width = 30;
-                likeImg.height = 30;
-
-                async function like(event) {
-                    var btn = event.target;
-                    var postID = btn.getAttribute("data-post-id");
-                    postID = parseInt(postID);
-                    var label = document.getElementById('label-for-post-' + postID);
-                    let num2 = parseInt(label.textContent, 10);
-                    if (btn.src.includes(inactiveLikeImg)) {
-                        console.log("Changing image to active");
-                        btn.src = activeLikeImg;
-                        console.log("liked post with id: ", postID);
-                        num2++;
-
-                    } else if (btn.src.includes(activeLikeImg)) {
-                        console.log("Changing image to default");
-                        btn.src = inactiveLikeImg;
-                        num2--;
-                    }
-                    await toggleLike(username, postID);
-                    label.textContent = num2.toString();
-                }
-
-                likeImg.addEventListener("click", like);
-                likeImg.style.cursor = 'pointer';
-                newPostDiv.appendChild(likeImg);
-
-                var label = document.createElement("label");
-                label.setAttribute("id", "label-for-post-" + post['id']);
-                label.textContent = post.numOfLikes;
-                newPostDiv.appendChild(label);
-                if (post.author.username === username) {
-                    var delBtn = document.createElement("button");
-                    delBtn.textContent = "delete post";
-                    delBtn.setAttribute("data-post-id", post['id'] + "");
-                    delBtn.addEventListener("click", deletePostEvent);
-                    newPostDiv.appendChild(delBtn);
-                }
-
-                document.getElementById("userPosts").appendChild(newPostDiv);
-                document.getElementById("userPosts").appendChild(document.createElement("hr"));
-            }
-            return postsData.length;
-        }
-
-        async function deletePostEvent(event) {
-            const btn = event.target;
-            const postID = btn.getAttribute("data-post-id");
-            await deletePost(username, postID);
-            const div = document.getElementById('div-post-id-'+postID);
-            div.innerHTML="<p>Post deleted</p>";
-            //window.location.reload();
-        }
-    </script>
+    <script src="{{ url_for("static", filename="functions.js") }}" type="module" defer></script>
 </head>
 <body style="margin-bottom: 0">
 {% with messages = get_flashed_messages() %}
@@ -129,11 +22,20 @@
     {% endif %}
 {% endwith %}
 {% if session.username %}
+
     <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer"
        id="mainImage">
     </a>
-    <script>
-        getImage("{{ session.username }}", document.getElementById("mainImage"), 200);
+    <script type="module">
+        import {getImageUrl} from "/static/jsAPICalls.js";
+        import {createDefaultImage, createImageElement, setSessionUsername} from "/static/functions.js"
+
+        setSessionUsername("{{ session.username }}");
+        const imgW = 200;
+        const imgH = 200;
+        const imageUrl = await getImageUrl("{{ session.username }}");
+        let img = (imageUrl === null) ? createDefaultImage(imgW, imgH) : createImageElement(imageUrl, imgW, imgH);
+        document.getElementById("mainImage").appendChild(img);
     </script>
     <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
@@ -152,9 +54,6 @@
     <ul id="usersListContent"></ul>
 </div>
 {% if session.username %}
-    <script>
-        setUsername("{{ session.username }}");
-    </script>
     <ul>
         <li><a href={{ url_for('new_poke') }}>Poke someone</a></li>
         <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
@@ -192,10 +91,13 @@
 
     <h2>Posts from users</h2>
     <div id="userPosts" data-limit="8">
-        <script>
+        <script type="module">
             var userPostsDiv = document.getElementById("userPosts");
             var dataLimit = userPostsDiv.getAttribute("data-limit");
             var limitNumber = parseInt(dataLimit, 10);
+            console.log("show posts");
+            import {showPosts} from "/static/functions.js";
+
             showPosts(limitNumber, 0);
         </script>
     </div>

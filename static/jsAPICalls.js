@@ -7,7 +7,7 @@ function handleErrors(response) {
 }
 
 // Function to register a new user
-async function registerUser(username, email, password) {
+export async function registerUser(username, email, password) {
     try {
         const response = await fetch('/api/users/register', {
             method: 'POST', headers: {
@@ -30,7 +30,7 @@ async function registerUser(username, email, password) {
 }
 
 // Function to get user by username
-async function getUserByUsername(username) {
+export async function getUserByUsername(username) {
     try {
         const encodedUsername = encodeURIComponent(username);
         const response = await fetch(`/api/users/getByUsername/${encodedUsername}`);
@@ -48,7 +48,7 @@ async function getUserByUsername(username) {
 }
 
 // Function to get user by ID
-async function getUserById(userId) {
+export async function getUserById(userId) {
     try {
         const response = await fetch(`/api/users/${userId}`);
         const data = handleErrors(response);
@@ -65,7 +65,7 @@ async function getUserById(userId) {
 }
 
 // Function to get all users
-async function getAllUsers() {
+export async function getAllUsers() {
     try {
         const response = await fetch('/api/users/all');
         const data = handleErrors(response);
@@ -82,7 +82,7 @@ async function getAllUsers() {
 }
 
 // Function to get all posts
-async function getAllPosts(limit, offset) {
+export async function getAllPosts(limit, offset) {
     try {
         console.log(offset);
         const response = await fetch('/api/posts/all?limit=' + limit + "&offset=" + offset);
@@ -100,7 +100,7 @@ async function getAllPosts(limit, offset) {
 }
 
 // Function to get all posts for a specific username
-async function getAllPostsForUsername(username) {
+export async function getAllPostsForUsername(username) {
     try {
         const encodedUsername = encodeURIComponent(username);
         const response = await fetch(`/api/posts/${encodedUsername}`);
@@ -118,7 +118,7 @@ async function getAllPostsForUsername(username) {
 }
 
 // Function to create a new post
-async function createPost(username, content) {
+export async function createPost(username, content) {
     try {
         const response = await fetch('/api/posts/new', {
             method: 'POST', headers: {
@@ -141,7 +141,7 @@ async function createPost(username, content) {
 }
 
 // Function to delete a post
-async function deletePost(username, postID) {
+export async function deletePost(username, postID) {
     try {
         const response = await fetch('/api/posts/delete', {
             method: 'DELETE', headers: {
@@ -164,7 +164,7 @@ async function deletePost(username, postID) {
 }
 
 // Function to toggle like for a post
-async function toggleLike(username, postID) {
+export async function toggleLike(username, postID) {
     try {
         const response = await fetch('/api/likes/toggle', {
             method: 'POST', headers: {
@@ -187,7 +187,7 @@ async function toggleLike(username, postID) {
 }
 
 // Function to get likes for a post
-async function getLikesForPost(postID) {
+export async function getLikesForPost(postID) {
     try {
         const response = await fetch(`/api/likes/post/${postID}`);
         const data = handleErrors(response);
@@ -203,7 +203,7 @@ async function getLikesForPost(postID) {
     }
 }
 
-async function getPokesForUserID(userID) {
+export async function getPokesForUserID(userID) {
     try {
         const response = await fetch(`/api/pokes/user/${userID}`);
         const data = handleErrors(response);
@@ -219,7 +219,7 @@ async function getPokesForUserID(userID) {
     }
 }
 
-async function getPokesForUsername(username) {
+export async function getPokesForUsername(username) {
     try {
         const response = await fetch(`/api/pokes/username/${username}`);
         const data = handleErrors(response);
@@ -235,7 +235,7 @@ async function getPokesForUsername(username) {
     }
 }
 
-async function createPoke(usernamePoking, usernamePoked) {
+export async function createPoke(usernamePoking, usernamePoked) {
     try {
         const response = await fetch('/api/pokes/new', {
             method: 'POST', headers: {
@@ -257,7 +257,7 @@ async function createPoke(usernamePoking, usernamePoked) {
     }
 }
 
-async function readPoke(pokeID) {
+export async function readPoke(pokeID) {
     try {
         const response = await fetch('/api/pokes/read/' + pokeID, {
             method: 'PUT'
@@ -278,61 +278,63 @@ async function readPoke(pokeID) {
 // Global image cache object
 var imageCache = {};
 
-async function getImage(username, imageContainer, imgSize) {
-    var imageUrl;
-    if (imageCache[username]) {
-        //console.log("ima sacuvano za "+username);
-        imageUrl = imageCache[username];
-    } else {
-        //console.log("nema sacuvano za "+username);
-        imageUrl = await getImageUrl(username);
-    }
-    if (imageUrl) {
-        const imgElem = createImageElement(imageUrl, imgSize);
-        imageContainer.innerHTML = '';
-        imageContainer.appendChild(imgElem);
+// export async function getImage(username, imageContainer, imgSize) {
+//     var imageUrl;
+//     if (imageCache[username]) {
+//         //console.log("ima sacuvano za "+username);
+//         imageUrl = imageCache[username];
+//     } else {
+//         //console.log("nema sacuvano za "+username);
+//         imageUrl = await getImageUrl(username);
+//     }
+//     if (imageUrl) {
+//         const imgElem = createImageElement(imageUrl, imgSize);
+//         imageContainer.innerHTML = '';
+//         imageContainer.appendChild(imgElem);
+//
+//         // Cache the image for future use
+//         imageCache[username] = imgElem.src;
+//     } else {
+//         // Handle error or display a default image
+//         const imgElem = createDefaultImage(imgSize);
+//         imageContainer.innerHTML = '';
+//         imageContainer.appendChild(imgElem);
+//
+//         // Cache the default image for future use
+//         imageCache[username] = imgElem.src;
+//     }
+//     //console.log(imageCache);
+// }
 
-        // Cache the image for future use
-        imageCache[username] = imgElem.src;
-    } else {
-        // Handle error or display a default image
-        const imgElem = createDefaultImage(imgSize);
-        imageContainer.innerHTML = '';
-        imageContainer.appendChild(imgElem);
-
-        // Cache the default image for future use
-        imageCache[username] = imgElem.src;
-    }
-    //console.log(imageCache);
-}
-
-async function getImageUrl(username) {
+export async function getImageUrl(username) {
+    if(imageCache[username]) return imageCache[username];
     const response = await fetch(`/api/users/images/${username}`);
     const data = await response.json();
-
     if (data.error) {
         return null;
     } else {
-        return `data:image/png;base64,${data.image}`;
+        const imageUrl = `data:image/png;base64,${data.image}`;
+        imageCache[username] = imageUrl;
+        return imageUrl;
     }
 }
 
-function createDefaultImage(imgSize) {
-    const imgElem = document.createElement("img");
-    imgElem.src = "/static/img/empty_profile_image.png";
-    imgElem.alt = "User image";
-    imgElem.width = imgSize;
-    imgElem.height = imgSize;
-    imgElem.style.objectFit = "contain";
-    return imgElem;
-}
-
-function createImageElement(imageUrl, imgSize) {
-    const imgElem = document.createElement("img");
-    imgElem.src = imageUrl;
-    imgElem.alt = "User image";
-    imgElem.width = imgSize;
-    imgElem.height = imgSize;
-    imgElem.style.objectFit = "contain";
-    return imgElem;
-}
+// function createDefaultImage(imgSize) {
+//     const imgElem = document.createElement("img");
+//     imgElem.src = "/static/img/empty_profile_image.png";
+//     imgElem.alt = "User image";
+//     imgElem.width = imgSize;
+//     imgElem.height = imgSize;
+//     imgElem.style.objectFit = "contain";
+//     return imgElem;
+// }
+//
+// function createImageElement(imageUrl, imgSize) {
+//     const imgElem = document.createElement("img");
+//     imgElem.src = imageUrl;
+//     imgElem.alt = "User image";
+//     imgElem.width = imgSize;
+//     imgElem.height = imgSize;
+//     imgElem.style.objectFit = "contain";
+//     return imgElem;
+// }
