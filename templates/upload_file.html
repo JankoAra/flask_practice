@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Upload</title>
-    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
 </head>
 <body>
 <form id="uploadForm">
@@ -18,7 +17,7 @@
 
 <script type="module">
     import {getImageUrl} from "../static/jsAPICalls.js";
-    import {createImageElement} from "../static/functions";
+    import {createImageElement} from "../static/functions.js";
 
     document.getElementById('uploadForm').addEventListener('submit', async function (event) {
         event.preventDefault();
@@ -39,7 +38,7 @@
             .catch(error => console.error('Error:', error));
         window.location = "/";
     });
-    const imgUrl = getImageUrl("{{ session.username }}");
+    const imgUrl = await getImageUrl("{{ session.username }}");
     const img = createImageElement(imgUrl, 300, 300);
     document.getElementById("imageContainer").appendChild(img);
 
