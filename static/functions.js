@@ -27,7 +27,7 @@ function createDefaultImage(imgW, imgH) {
     return imgElem;
 }
 
-function createImageElement(imageUrl, imgW, imgH) {
+export function createImageElement(imageUrl, imgW, imgH) {
     const imgElem = document.createElement("img");
     imgElem.src = imageUrl;
     imgElem.alt = "User image";
@@ -160,6 +160,7 @@ export async function showProfileImage() {
     const imgH = 200;
     const imageUrl = await getImageUrl(sessionUsername);
     let img = (imageUrl === null) ? createDefaultImage(imgW, imgH) : createImageElement(imageUrl, imgW, imgH);
+    img.setAttribute("id", "profileImage");
     document.getElementById("mainImage").appendChild(img);
 }
 
@@ -201,4 +202,17 @@ export async function showUsers() {
         // If the user list is already visible, hide it
         userList.style.display = 'none';
     }
+}
+
+export function togglePassword() {
+    const passwordField = document.getElementById("password");
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+    } else {
+        passwordField.type = "password";
+    }
+}
+
+export async function setFlaskSessionUsername(username) {
+    await fetch(`/session/username/${username}`, {method: "POST"});
 }

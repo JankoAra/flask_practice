@@ -16,7 +16,10 @@
 
 <div id="imageContainer"></div>
 
-<script>
+<script type="module">
+    import {getImageUrl} from "../static/jsAPICalls.js";
+    import {createImageElement} from "../static/functions";
+
     document.getElementById('uploadForm').addEventListener('submit', async function (event) {
         event.preventDefault();
 
@@ -36,9 +39,9 @@
             .catch(error => console.error('Error:', error));
         window.location = "/";
     });
-
-    // Call getImage function with a specific username (replace 'exampleUser' with an actual username)
-    getImage("{{ session.username }}", document.getElementById("imageContainer"), 300);
+    const imgUrl = getImageUrl("{{ session.username }}");
+    const img = createImageElement(imgUrl, 300, 300);
+    document.getElementById("imageContainer").appendChild(img);
 
 </script>
 </body>

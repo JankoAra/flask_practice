@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Poke someone</title>
-    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
 </head>
 <body>
 <a href="/">Back to index</a>
@@ -12,7 +11,9 @@
 <div id="infoMessages">
     <p id="lastMessage"></p>
 </div>
-<script>
+<script type="module">
+    import {getAllUsers, createPoke} from "../static/jsAPICalls.js";
+
     async function fetchUsers() {
         const users = await getAllUsers();
         const userListDiv = document.getElementById("userList");
@@ -28,7 +29,6 @@
             a.addEventListener("click", makePokeEvent);
             const label = document.createElement("label");
             label.textContent = user.username + ": ";
-            //li.appendChild(document.createTextNode(`${user.username} `));
             li.appendChild(label);
             li.appendChild(a);
             ul.appendChild(li);
@@ -44,7 +44,7 @@
         document.getElementById("lastMessage").textContent = `You poked ${usernamePoked}!`;
     }
 
-    fetchUsers();
+    await fetchUsers();
 </script>
 </body>
 </html>

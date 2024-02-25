@@ -3,40 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
-    <script>
-        function togglePassword() {
-            var passwordField = document.getElementById("password");
-            if (passwordField.type === "password") {
-                passwordField.type = "text";
-            } else {
-                passwordField.type = "password";
-            }
-        }
-
-        async function callRegisterUser() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            const email = document.getElementById("email").value;
-            var registrationData = await registerUser(username, email, password);
-            if (!registrationData.error) {
-                // Data is available, you can use registrationData
-                await setSessionUsername(username);
-            } else {
-                // Handle the error
-                console.error('Registration error:', registrationData.error);
-            }
-        }
-
-        async function setSessionUsername(username) {
-            await fetch(`/session/username/${username}`, {method: "POST"});
-        }
-    </script>
-    {#    <script src={{ url_for('static',filename='functions.js') }}></script>#}
 </head>
 <body>
 <a href={{ url_for('index') }}>Back to index</a>
-{#onsubmit vraca true ili false, ako je false submit se prekida#}
 <form id="registerForm" method="post" action="{{ url_for('api.create_user') }}"
       data-redirect-url="{{ url_for("index") }}">
     <p>Enter username:</p>
@@ -46,11 +15,30 @@
     <p>Enter password:</p>
     <p>
         <input type="password" name="password" id="password">
-        <button type="button" onclick="togglePassword()">Show/Hide</button>
+        <button type="button" id="togglePassword">Show/Hide</button>
     </p>
     <p><input type="submit" value="submit"></p>
-    {#    <button onclick="registerUser()">Submit via JavaScript</button>#}
-    <script>
+    <script type="module">
+        import {registerUser} from "../static/jsAPICalls.js";
+        import {togglePassword, setFlaskSessionUsername} from "../static/functions.js";
+
+        document.getElementById("togglePassword").addEventListener("click", togglePassword);
+
+
+        async function callRegisterUser() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const email = document.getElementById("email").value;
+            const registrationData = await registerUser(username, email, password);
+            if (!registrationData.error) {
+                // Data is available, you can use registrationData
+                await setFlaskSessionUsername(username);
+            } else {
+                // Handle the error
+                console.error('Registration error:', registrationData.error);
+            }
+        }
+
         document.getElementById("registerForm").addEventListener("submit", async function (event) {
             event.preventDefault();
             await callRegisterUser();

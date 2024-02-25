@@ -35,3 +35,9 @@ nav{
     margin-top: 2em;
     margin-bottom: 2em;
 }
+
+#profileImage{
+    border-radius: 50%;
+    border: 2px solid black;
+    cursor: pointer;
+}

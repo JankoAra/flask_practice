@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>My pokes</title>
-    <script src="{{ url_for("static", filename="jsAPICalls.js") }}"></script>
 </head>
 <body>
 <a href={{ url_for('index') }}>Back to index</a>
 <div id="pokesForUser"></div>
 
-<script>
+<script type="module">
+    import {createPoke, getPokesForUsername, readPoke} from "../static/jsAPICalls.js";
+
     async function fetchPokes() {
         const pokes = await getPokesForUsername("{{ session.username }}");
         const pokesDiv = document.getElementById("pokesForUser");

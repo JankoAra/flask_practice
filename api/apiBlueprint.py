@@ -3,7 +3,7 @@ from io import BytesIO
 
 from flask import Blueprint, current_app, jsonify, request, flash
 from sqlalchemy import or_
-from sqlalchemy.orm import joinedload, aliased
+from sqlalchemy.orm import aliased
 
 from dbModels import Posts, Users, Likes, Pokes
 from extensions import bcrypt, db
@@ -207,22 +207,22 @@ def delete_post():
     try:
         data = request.get_json()
         username = data.get("username")
-        postID = data.get("postID")
-        if not username or not postID:
+        post_id = data.get("postID")
+        if not username or not post_id:
             status = 400
             raise Exception('Parameters missing!')
         user = Users.query.filter_by(username=username).first()
         if not user:
             status = 404
             raise Exception('User doesn\'t exist!')
-        post = Posts.query.filter_by(id=postID).first()
+        post = Posts.query.filter_by(id=post_id).first()
         if not post:
             status = 404
             raise Exception('Post doesn\'t exist!')
         if post.author_id != user.id:
             status = 403
             raise Exception('User is not the author of the post!')
-        likes = Likes.query.filter_by(post_id=postID).all()
+        likes = Likes.query.filter_by(post_id=post_id).all()
         for like in likes:
             db.session.delete(like)
         db.session.delete(post)
