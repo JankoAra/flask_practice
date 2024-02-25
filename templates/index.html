@@ -4,57 +4,32 @@
     <meta charset="UTF-8">
     <title>Poke-er</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        #userList {
-            display: none;
-        }
-    </style>
-    <script src="{{ url_for("static", filename="functions.js") }}" type="module" defer></script>
+    <link type="text/css" rel="stylesheet" href="/static/styles.css">
+
 </head>
 <body style="margin-bottom: 0">
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
 {% if session.username %}
-
     <a title="Upload a profile image" href="{{ url_for('form', action='uploadfile') }}" style="cursor: pointer"
        id="mainImage">
     </a>
-    <script type="module">
-        import {getImageUrl} from "/static/jsAPICalls.js";
-        import {createDefaultImage, createImageElement, setSessionUsername} from "/static/functions.js"
-
-        setSessionUsername("{{ session.username }}");
-        const imgW = 200;
-        const imgH = 200;
-        const imageUrl = await getImageUrl("{{ session.username }}");
-        let img = (imageUrl === null) ? createDefaultImage(imgW, imgH) : createImageElement(imageUrl, imgW, imgH);
-        document.getElementById("mainImage").appendChild(img);
-    </script>
     <h1>Logged in as {{ session.username }}</h1>
 {% endif %}
-<ul>
-    <li><a href={{ url_for('form', action='register') }}>Register</a></li>
-    {% if session.username %}
-        <li><a href={{ url_for('logout') }}>Log out</a></li>
-    {% else %}
-        <li><a href={{ url_for('form', action='login') }}>Log in</a></li>
-    {% endif %}
-    <li><a href="#" id="showUsersLink" onclick="showUsers()">Show Users</a></li>
-</ul>
-
+<nav>
+    <ul class="navigation">
+        {% if session.username %}
+            <li><a href={{ url_for('logout') }}>Log out</a></li>
+        {% else %}
+            <li><a href={{ url_for('form', action='register') }}>Register</a></li>
+            <li><a href={{ url_for('form', action='login') }}>Log in</a></li>
+        {% endif %}
+        <li><a id="showUsersLink">Show Users</a></li>
+    </ul>
+</nav>
 <div id="userList">
-    <!-- Content to display all users -->
     <ul id="usersListContent"></ul>
 </div>
 {% if session.username %}
-    <ul>
+    <ul class="navigation">
         <li><a href={{ url_for('new_poke') }}>Poke someone</a></li>
         <li><a href={{ url_for('my_pokes') }}>View pokes</a></li>
         <li><a href={{ url_for('form', action='uploadfile') }}>Upload a profile picture</a></li>
@@ -63,92 +38,41 @@
     <br>
     <textarea name="postContent" id="postContent" cols="50" rows="5"></textarea>
     <button id="submitPostBtn">Submit post</button>
-    <script>
-        async function submitPost(event) {
-            event.preventDefault();
-            const textArea = document.getElementById("postContent");
-            const content = textArea.value;
-            if (!content) {
-                console.log("Post content is empty. No post created.");
-                return false;
-            }
-
-            await createPost("{{ session.username }}", content);
-            const userPostsDiv = document.getElementById("userPosts");
-            const dataLimit = parseInt(userPostsDiv.getAttribute("data-limit"), 10);
-            userPostsDiv.setAttribute('data-limit', dataLimit + 1);
-            userPostsDiv.innerHTML = "";
-            await showPosts(dataLimit + 1, 0);
-            textArea.value = "";
-
-            //window.location.reload();
-        }
-
-        const btn = document.getElementById("submitPostBtn");
-        btn.addEventListener("click", submitPost);
-    </script>
     <hr>
 
     <h2>Posts from users</h2>
     <div id="userPosts" data-limit="8">
-        <script type="module">
-            var userPostsDiv = document.getElementById("userPosts");
-            var dataLimit = userPostsDiv.getAttribute("data-limit");
-            var limitNumber = parseInt(dataLimit, 10);
-            console.log("show posts");
-            import {showPosts} from "/static/functions.js";
-
-            showPosts(limitNumber, 0);
-        </script>
     </div>
-    <script>
-        async function loadMorePosts() {
-            var userPostsDiv = document.getElementById("userPosts");
-            var currentLimit = userPostsDiv.getAttribute("data-limit");
-            currentLimit = parseInt(currentLimit, 10);
-            const newPostsToLoad = 8;
-            var newLimit = currentLimit + newPostsToLoad;
-            userPostsDiv.setAttribute('data-limit', newLimit.toString());
-            var postsReturned = await showPosts(newPostsToLoad, currentLimit);
-            //console.log(newLimit, postsReturned);
-            if (postsReturned < newPostsToLoad) {
-                document.getElementById("loadMorePostsLink").remove();
-                var msg = document.createElement("p");
-                msg.textContent = "All posts loaded!";
-                userPostsDiv.insertAdjacentElement("afterend", msg);
-            }
-        }
-
-    </script>
-    <a href="#loadMorePostsLink" onclick="loadMorePosts()" id="loadMorePostsLink">Load more posts</a>
+    <a id="loadMorePostsLink">Load more posts</a>
     <div style="height: 50px;"></div>
+
+    <script type="module">
+        import {
+            loadMorePosts,
+            showPosts,
+            showProfileImage,
+            submitPost,
+            setSessionUsername,
+            showUsers
+        } from "../static/functions.js";
+
+        setSessionUsername("{{ session.username }}");
+        showProfileImage();
+        document.getElementById("submitPostBtn").addEventListener("click", submitPost);
+
+        var userPostsDiv = document.getElementById("userPosts");
+        var dataLimit = userPostsDiv.getAttribute("data-limit");
+        var limitNumber = parseInt(dataLimit, 10);
+        showPosts(limitNumber, 0);
+
+        document.getElementById("loadMorePostsLink").addEventListener("click", loadMorePosts);
+
+        document.getElementById("showUsersLink").addEventListener("click", showUsers);
+    </script>
 
 {% endif %}
 <script>
-    async function showUsers() {
-        var userList = document.getElementById('userList');
 
-        // If the user list is not visible, make an AJAX request to fetch the user data
-        if (userList.style.display === 'none' || userList.style.display === '') {
-            const userData = await getAllUsers();
-            const usersListContent = document.getElementById('usersListContent');
-            usersListContent.innerHTML = '<p>All users</p>';  // Clear existing content
-
-
-            // Display each username one per line
-            userData.forEach(function (user) {
-                let li = document.createElement('li');
-                li.textContent = user.username;
-                usersListContent.appendChild(li);
-            });
-
-            // Show the user list
-            userList.style.display = 'block';
-        } else {
-            // If the user list is already visible, hide it
-            userList.style.display = 'none';
-        }
-    }
 </script>
 
 </body>

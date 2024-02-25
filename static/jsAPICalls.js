@@ -84,7 +84,6 @@ export async function getAllUsers() {
 // Function to get all posts
 export async function getAllPosts(limit, offset) {
     try {
-        console.log(offset);
         const response = await fetch('/api/posts/all?limit=' + limit + "&offset=" + offset);
         const data = handleErrors(response);
         if (data.error) {
@@ -278,36 +277,8 @@ export async function readPoke(pokeID) {
 // Global image cache object
 var imageCache = {};
 
-// export async function getImage(username, imageContainer, imgSize) {
-//     var imageUrl;
-//     if (imageCache[username]) {
-//         //console.log("ima sacuvano za "+username);
-//         imageUrl = imageCache[username];
-//     } else {
-//         //console.log("nema sacuvano za "+username);
-//         imageUrl = await getImageUrl(username);
-//     }
-//     if (imageUrl) {
-//         const imgElem = createImageElement(imageUrl, imgSize);
-//         imageContainer.innerHTML = '';
-//         imageContainer.appendChild(imgElem);
-//
-//         // Cache the image for future use
-//         imageCache[username] = imgElem.src;
-//     } else {
-//         // Handle error or display a default image
-//         const imgElem = createDefaultImage(imgSize);
-//         imageContainer.innerHTML = '';
-//         imageContainer.appendChild(imgElem);
-//
-//         // Cache the default image for future use
-//         imageCache[username] = imgElem.src;
-//     }
-//     //console.log(imageCache);
-// }
-
 export async function getImageUrl(username) {
-    if(imageCache[username]) return imageCache[username];
+    if (imageCache[username]) return imageCache[username];
     const response = await fetch(`/api/users/images/${username}`);
     const data = await response.json();
     if (data.error) {
@@ -318,23 +289,3 @@ export async function getImageUrl(username) {
         return imageUrl;
     }
 }
-
-// function createDefaultImage(imgSize) {
-//     const imgElem = document.createElement("img");
-//     imgElem.src = "/static/img/empty_profile_image.png";
-//     imgElem.alt = "User image";
-//     imgElem.width = imgSize;
-//     imgElem.height = imgSize;
-//     imgElem.style.objectFit = "contain";
-//     return imgElem;
-// }
-//
-// function createImageElement(imageUrl, imgSize) {
-//     const imgElem = document.createElement("img");
-//     imgElem.src = imageUrl;
-//     imgElem.alt = "User image";
-//     imgElem.width = imgSize;
-//     imgElem.height = imgSize;
-//     imgElem.style.objectFit = "contain";
-//     return imgElem;
-// }

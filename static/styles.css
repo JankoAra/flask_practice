@@ -1,0 +1,37 @@
+#userList {
+    display: none;
+}
+
+#loadMorePostsLink, .navigation li a {
+    padding: 10px;
+    background-color: green;
+    cursor: pointer;
+    border-radius: 10px;
+    color: white;
+}
+
+#loadMorePostsLink {
+    display: block;
+}
+
+#loadMorePostsLink:hover, .navigation li a:hover {
+    background-color: lightgreen;
+    color: black !important;
+}
+
+.navigation li {
+    display: inline;
+}
+
+.navigation li a {
+    text-decoration: none;
+}
+
+.navigation li a:visited {
+    color: white;
+}
+
+nav{
+    margin-top: 2em;
+    margin-bottom: 2em;
+}

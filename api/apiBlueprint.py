@@ -126,7 +126,6 @@ def get_all_posts():
         with current_app.app_context():
             limit = request.args.get("limit")
             offset = request.args.get("offset")
-            print(offset)
             if limit is not None and limit != "undefined" and offset is not None and offset != "undefined":
                 limit = int(limit)
                 offset = int(offset)
